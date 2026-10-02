@@ -83,6 +83,14 @@ data class ScheduleGridStyle(
             DualColor(light = Color(0xFFFF99E6), dark = Color(0xFF66004D)),
             DualColor(light = Color(0xFFFF99CC), dark = Color(0xFF660033)),
             DualColor(light = Color(0xFFFF99B3), dark = Color(0xFF66001A)),
+            DualColor(light = Color(0xFFA7C8F2), dark = Color(0xFF2D4F73)),
+            DualColor(light = Color(0xFFB9D8F2), dark = Color(0xFF325D73)),
+            DualColor(light = Color(0xFF9FD5D0), dark = Color(0xFF2D6461)),
+            DualColor(light = Color(0xFFB7D5B2), dark = Color(0xFF446343)),
+            DualColor(light = Color(0xFFC8CDD4), dark = Color(0xFF4D535C)),
+            DualColor(light = Color(0xFFEFAAA5), dark = Color(0xFF7A3F3B)),
+            DualColor(light = Color(0xFFEDB574), dark = Color(0xFF74501F)),
+            DualColor(light = Color(0xFFC9B5DF), dark = Color(0xFF5D4773)),
         )
 
         /**
@@ -135,6 +143,13 @@ fun DualColor.toProto(): DualColorProto {
     )
 }
 
+internal fun resolveCourseColorMaps(storedColorMaps: List<DualColor>): List<DualColor> {
+    if (storedColorMaps.isEmpty()) return ScheduleGridStyle.DEFAULT_COLOR_MAPS
+    if (storedColorMaps.size >= ScheduleGridStyle.DEFAULT_COLOR_MAPS.size) return storedColorMaps
+
+    return storedColorMaps + ScheduleGridStyle.DEFAULT_COLOR_MAPS.drop(storedColorMaps.size)
+}
+
 /**
  * Protobuf -> ScheduleGridStyle 转换 function
  */
@@ -158,7 +173,7 @@ fun ScheduleGridStyleProto.toCompose(): ScheduleGridStyle {
         courseBlockFontScale = this.course_block_font_scale ?: d.courseBlockFontScale,
 
         // 5. 列表转换 (Wire 中 List 不会是 null，为空则是 EmptyList)
-        courseColorMaps = if (this.course_color_maps.isEmpty()) d.courseColorMaps else this.course_color_maps.map { it.toCompose() },
+        courseColorMaps = resolveCourseColorMaps(this.course_color_maps.map { it.toCompose() }),
 
         // 6. 开关映射
         hideGridLines = this.hide_grid_lines ?: d.hideGridLines,
