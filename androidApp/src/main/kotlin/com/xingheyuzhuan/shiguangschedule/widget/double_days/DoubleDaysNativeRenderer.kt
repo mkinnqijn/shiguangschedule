@@ -9,6 +9,7 @@ import com.xingheyuzhuan.shiguangschedule.MainActivity
 import com.xingheyuzhuan.shiguangschedule.R
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
+import com.xingheyuzhuan.shiguangschedule.widget.narrowDisplayName
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -132,7 +133,7 @@ object DoubleDaysNativeRenderer {
             // 循环渲染所有课程
             displayCourses.forEachIndexed { index, course ->
                 val itemRv = RemoteViews(context.packageName, R.layout.widget_item_course_common)
-                itemRv.setTextViewText(R.id.tv_course_name, course.name)
+                itemRv.setTextViewText(R.id.tv_course_name, course.narrowDisplayName())
                 itemRv.setTextViewText(R.id.tv_course_position, course.position)
 
                 val timeRange = "${course.start_time.take(5)}-${course.end_time.take(5)}"

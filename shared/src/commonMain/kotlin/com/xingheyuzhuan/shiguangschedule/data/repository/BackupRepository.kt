@@ -192,7 +192,7 @@ class BackupRepository(
                 courseTableDao.insert(CourseTable(pack.tableId, pack.tableName, pack.createdAt))
                 val importModel = CourseTableImportModel(
                     courses = pack.tableData.courses.map {
-                        ImportCourseJsonModel(it.id, it.name, it.teacher, it.position, it.day, it.startSection, it.endSection, it.weeks, it.isCustomTime, it.customStartTime, it.customEndTime, it.color, it.remark)
+                        ImportCourseJsonModel(it.id, it.name, it.teacher, it.position, it.day, it.startSection, it.endSection, it.weeks, it.isCustomTime, it.customStartTime, it.customEndTime, it.color, it.remark, widgetShortName = it.widgetShortName)
                     },
                     timeSlots = pack.tableData.timeSlots,
                     config = pack.tableData.config

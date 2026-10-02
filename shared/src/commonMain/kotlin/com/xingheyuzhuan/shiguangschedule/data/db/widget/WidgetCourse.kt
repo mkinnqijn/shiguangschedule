@@ -18,5 +18,6 @@ data class WidgetCourse(
     val endTime: String, // 课程结束时间，例如 "08:45"
     val isSkipped: Boolean = false, // 是否跳过该课程
     val date: String, // 课程的真实上课日期，例如 "2025-09-15"
-    val colorInt: Int // 新增字段：课程卡片的颜色索引
+    val colorInt: Int, // 课程卡片的颜色索引
+    val widgetShortName: String? = null
 )

@@ -61,6 +61,10 @@ android {
         buildConfig = true
     }
 
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
     androidResources {
         generateLocaleConfig = true
         localeFilters += listOf("zh", "zh-rCN", "zh-rTW", "en")
@@ -68,6 +72,11 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.17")
+    testImplementation(libs.androidx.room3.runtime)
+    testImplementation(libs.androidx.sqlite.framework)
+    testImplementation(libs.androidx.datastore.preferences)
     implementation(project(":shared"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

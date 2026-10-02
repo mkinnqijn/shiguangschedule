@@ -609,4 +609,6 @@
     <string name="backup_target_webdav">WebDAV 云同步</string>
     <string name="backup_target_local_zip">本地 ZIP 文件</string>
 
+    <string name="label_widget_short_name">课程简称</string>
+    <string name="hint_widget_short_name">可选，仅用于窄版小组件；留空显示正式名称。同名课程的各上课方案共用。</string>
 </resources>

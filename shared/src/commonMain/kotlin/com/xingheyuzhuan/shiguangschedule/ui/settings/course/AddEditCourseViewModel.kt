@@ -66,6 +66,7 @@ class AddEditCourseViewModel(
 
     private var originalDbIds = setOf<String>()
     private var initialName: String = ""
+    private var initialWidgetShortName: String = ""
     private var initialSchemes: List<CourseScheme> = emptyList()
 
     fun initWithId(id: String?) {
@@ -162,12 +163,15 @@ class AddEditCourseViewModel(
 
                         // 保存备份
                         initialName = initialPresetData?.name ?: relatedCourseWithWeeks.firstOrNull()?.course?.name.orEmpty()
+                        initialWidgetShortName = relatedCourseWithWeeks
+                            .firstOrNull { it.course.id == courseId }?.course?.widgetShortName.orEmpty()
                         initialSchemes = schemes
 
                         currentState.copy(
                             isEditing = courseId != null,
                             isDataLoaded = true,
                             name = initialName,
+                            widgetShortName = initialWidgetShortName,
                             schemes = schemes,
                             timeSlots = timeSlots,
                             currentCourseTableId = appSettings.currentCourseTableId,
@@ -187,6 +191,9 @@ class AddEditCourseViewModel(
     }
 
     fun onNameChange(name: String) { _uiState.update { it.copy(name = name) } }
+    fun onWidgetShortNameChange(name: String) {
+        _uiState.update { it.copy(widgetShortName = name) }
+    }
 
     /**
      * 判断是否有未保存的内容变更
@@ -197,7 +204,8 @@ class AddEditCourseViewModel(
         if (!state.isDataLoaded) return false
 
         // 比较名称或方案列表是否发生变化（CourseScheme 是 data class，支持内容比较）
-        return state.name != initialName || state.schemes != initialSchemes
+        return state.name != initialName || state.widgetShortName != initialWidgetShortName ||
+                state.schemes != initialSchemes
     }
 
     /**
@@ -288,6 +296,7 @@ class AddEditCourseViewModel(
                     id = scheme.dbId ?: Uuid.random().toString(),
                     courseTableId = tableId,
                     name = state.name,
+                    widgetShortName = state.widgetShortName.trim().takeIf { it.isNotEmpty() },
                     teacher = scheme.teacher,
                     position = scheme.position,
                     remark = scheme.remark,
@@ -351,6 +360,7 @@ data class AddEditCourseUiState(
     val isEditing: Boolean = false,
     val isDataLoaded: Boolean = false,
     val name: String = "",
+    val widgetShortName: String = "",
     val schemes: List<CourseScheme> = emptyList(),
     val timeSlots: List<TimeSlot> = emptyList(),
     val currentCourseTableId: String? = null,

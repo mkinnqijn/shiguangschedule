@@ -8,6 +8,7 @@ import android.widget.RemoteViews
 import com.xingheyuzhuan.shiguangschedule.MainActivity
 import com.xingheyuzhuan.shiguangschedule.R
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
+import com.xingheyuzhuan.shiguangschedule.widget.narrowDisplayName
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -55,7 +56,7 @@ object TinyNativeRenderer {
             rv.setViewVisibility(R.id.bubble_frame, View.VISIBLE)
             rv.setViewVisibility(R.id.container_status, View.GONE)
 
-            rv.setTextViewText(R.id.tv_course_name, nextCourse.name)
+            rv.setTextViewText(R.id.tv_course_name, nextCourse.narrowDisplayName())
 
             val timeText = "${nextCourse.start_time.take(5)} - ${nextCourse.end_time.take(5)}"
             rv.setTextViewText(R.id.tv_course_time, timeText)

@@ -69,6 +69,7 @@ suspend fun updateAllWidgets(context: Context) {
             WidgetCourseProto(
                 id = course.id,
                 name = course.name,
+                widget_short_name = course.widgetShortName.orEmpty(),
                 teacher = course.teacher,
                 position = course.position,
                 start_time = course.startTime,

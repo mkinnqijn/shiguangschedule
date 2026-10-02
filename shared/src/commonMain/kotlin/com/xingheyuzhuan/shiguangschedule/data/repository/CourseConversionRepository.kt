@@ -168,7 +168,8 @@ class CourseConversionRepository(
                     customStartTime = jsonCourse.customStartTime,
                     customEndTime = jsonCourse.customEndTime,
                     colorInt = courseIndex,
-                    remark = null
+                    remark = null,
+                    widgetShortName = jsonCourse.widgetShortName?.trim()?.takeIf { it.isNotEmpty() }
                 )
             )
 
@@ -245,7 +246,8 @@ class CourseConversionRepository(
                     customStartTime = jsonCourse.customStartTime,
                     customEndTime = jsonCourse.customEndTime,
                     colorInt = courseIndex,
-                    remark = jsonCourse.remark?.take(300)
+                    remark = jsonCourse.remark?.take(300),
+                    widgetShortName = jsonCourse.widgetShortName?.trim()?.takeIf { it.isNotEmpty() }
                 )
             )
 
@@ -385,7 +387,8 @@ class CourseConversionRepository(
                 isCustomTime = course.isCustomTime,
                 customStartTime = course.customStartTime,
                 customEndTime = course.customEndTime,
-                remark = course.remark
+                remark = course.remark,
+                widgetShortName = course.widgetShortName
             )
         }
 

@@ -10,6 +10,7 @@ actual fun createWidgetDatabase(appStorage: AppStorage): WidgetDatabase {
         name = dbPath,
         factory = { WidgetDatabaseConstructor.initialize() }
     )
+        .addMigrations(WIDGET_MIGRATION_3_4)
         .fallbackToDestructiveMigration(true)
         .setDriver(BundledSQLiteDriver())
         .build()

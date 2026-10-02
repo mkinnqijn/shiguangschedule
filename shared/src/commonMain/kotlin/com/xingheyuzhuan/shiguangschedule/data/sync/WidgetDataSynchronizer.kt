@@ -250,6 +250,7 @@ class WidgetDataSynchronizer(
                     val widgetCourse = WidgetCourse(
                         id = "${course.id}-$dateString",
                         name = course.name,
+                        widgetShortName = course.widgetShortName,
                         teacher = course.teacher,
                         position = course.position,
                         startTime = startTime,
