@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -126,7 +128,7 @@ fun CourseBlock(
         Modifier
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier
             .then(floatingShadowModifier)
             .fillMaxSize()
@@ -134,6 +136,21 @@ fun CourseBlock(
             .clip(shape)
             .background(color = blockColor)
     ) {
+        val density = LocalDensity.current
+        val teacher = course.teacher
+        val position = course.position
+        val locationVisible = !style.hideLocation && position.isNotBlank()
+        val contentHeight = (maxHeight - style.courseBlockInnerPadding * 2).coerceAtLeast(0.dp)
+        val nameLineHeight = with(density) { s13.toDp() } * 1.2f
+        val detailLineHeight = with(density) { s10.toDp() }
+        val minimumHeightBeforeTeacher =
+            nameLineHeight * 2 +
+                    (if (timeTextToShow != null) detailLineHeight else 0.dp) +
+                    (if (locationVisible) detailLineHeight else 0.dp)
+        val teacherVisible = !style.hideTeacher &&
+                teacher.isNotBlank() &&
+                contentHeight >= minimumHeightBeforeTeacher + detailLineHeight
+
         // 课程文字内容容器
         Column(
             modifier = Modifier.fillMaxSize().padding(style.courseBlockInnerPadding),
@@ -147,6 +164,8 @@ fun CourseBlock(
                     color = textColor.copy(alpha = 0.8f),
                     fontWeight = FontWeight.SemiBold,
                     textAlign = textAlign,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     style = TextStyle(lineHeight = 1.em)
                 )
             }
@@ -162,19 +181,29 @@ fun CourseBlock(
                 style = TextStyle(lineHeight = 1.2.em)
             )
 
-            if (!style.hideTeacher) {
-                val teacher = course.teacher
-                if (teacher.isNotBlank()) {
-                    Text(text = teacher, fontSize = s10, color = textColor, textAlign = textAlign, overflow = TextOverflow.Ellipsis, style = TextStyle(lineHeight = 1.em))
-                }
+            if (locationVisible) {
+                val prefix = if (style.removeLocationAt) "" else "@"
+                Text(
+                    text = "$prefix$position",
+                    fontSize = s10,
+                    color = textColor,
+                    textAlign = textAlign,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = TextStyle(lineHeight = 1.em)
+                )
             }
 
-            if (!style.hideLocation) {
-                val position = course.position
-                if (position.isNotBlank()) {
-                    val prefix = if (style.removeLocationAt) "" else "@"
-                    Text(text = "$prefix$position", fontSize = s10, color = textColor, textAlign = textAlign, overflow = TextOverflow.Ellipsis, style = TextStyle(lineHeight = 1.em))
-                }
+            if (teacherVisible) {
+                Text(
+                    text = teacher,
+                    fontSize = s10,
+                    color = textColor,
+                    textAlign = textAlign,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = TextStyle(lineHeight = 1.em)
+                )
             }
         }
 
