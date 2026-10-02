@@ -79,7 +79,8 @@ data class WeeklyScheduleUiState(
 private data class NormalizedCourse(
     val raw: CourseWithWeeks,
     val start: Float,
-    val end: Float
+    val end: Float,
+    val weekDisplayState: CourseWeekDisplayState
 )
 
 /**
@@ -190,11 +191,7 @@ class WeeklyScheduleViewModel(
                 val isWithinSemester = pageWeekNum != null && pageWeekNum in 1..config.semesterTotalWeeks
 
                 val coursesFlow = if (settings.showNonCurrentWeekCourses && isWithinSemester) {
-                    courseTableRepository.getCoursesWithWeeksByTableId(tableId).map { allCourses ->
-                        allCourses.filter { cw ->
-                            cw.weeks.any { it.weekNumber >= pageWeekNum }
-                        }
-                    }
+                    courseTableRepository.getCoursesWithWeeksByTableId(tableId)
                 } else {
                     courseTableRepository.getCoursesWithWeeksByDate(tableId, day, config)
                 }
@@ -642,6 +639,12 @@ class WeeklyScheduleViewModel(
         val minSafeHeight = if (mode == ScheduleModeProto.TIME_24H_MODE) 0.0f else 0.3f
 
         val normalizedList = courses.mapNotNull { cw ->
+            val weekDisplayState = resolveCourseWeekDisplayState(
+                courseWeeks = cw.weeks.map { it.weekNumber },
+                selectedWeekNumber = currentWeek
+            )
+            if (weekDisplayState == CourseWeekDisplayState.HIDDEN) return@mapNotNull null
+
             try {
                 val c = cw.course
 
@@ -675,7 +678,12 @@ class WeeklyScheduleViewModel(
                     }
                 }
 
-                NormalizedCourse(cw, finalStart.coerceIn(1.0f, limit - 0.1f), finalEnd.coerceIn(1.0f + 0.1f, limit))
+                NormalizedCourse(
+                    raw = cw,
+                    start = finalStart.coerceIn(1.0f, limit - 0.1f),
+                    end = finalEnd.coerceIn(1.0f + 0.1f, limit),
+                    weekDisplayState = weekDisplayState
+                )
             } catch (e: Exception) { null }
         }
 
@@ -732,7 +740,6 @@ class WeeklyScheduleViewModel(
 
                 for (item in cluster) {
                     val cw = item.raw
-                    val isCurrentWeekActive = cw.weeks.any { it.weekNumber == currentWeek }
                     val myColumnIndex = itemToColumnIndex[item] ?: 0
 
                     result.add(
@@ -742,7 +749,7 @@ class WeeklyScheduleViewModel(
                             endSection = (item.end - 1f).coerceIn(0f, maxSection),
                             courses = listOf(cw),
                             needsProportionalRendering = (mode == ScheduleModeProto.TIME_24H_MODE) || cw.course.isCustomTime,
-                            isVisualDemoted = !isCurrentWeekActive,
+                            isVisualDemoted = item.weekDisplayState == CourseWeekDisplayState.NEXT_WEEK_PREVIEW,
                             nonActiveRanges = listOf(myColumnIndex.toFloat() to totalSubColumns.toFloat()),
                             clusterCourses = sortedClusterCourses
                         )

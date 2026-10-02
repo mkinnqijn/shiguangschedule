@@ -1,5 +1,8 @@
 package com.xingheyuzhuan.shiguangschedule.ui.schedule.components
 
+import com.xingheyuzhuan.shiguangschedule.ui.schedule.CourseWeekDisplayState
+import com.xingheyuzhuan.shiguangschedule.ui.schedule.resolveCourseWeekDisplayState
+
 private val WEEKDAYS = (1..5).toList()
 private val WEEKEND_DAYS = listOf(6, 7)
 
@@ -14,9 +17,11 @@ internal fun resolveVisibleWeekDays(
 ): List<Int> {
     if (!showWeekends || selectedWeekNumber == null) return WEEKDAYS
 
-    val relevantWeeks = selectedWeekNumber..(selectedWeekNumber + 1)
     val visibleWeekendDays = WEEKEND_DAYS.filter { day ->
-        courseWeeksByDay[day].orEmpty().any { week -> week in relevantWeeks }
+        resolveCourseWeekDisplayState(
+            courseWeeks = courseWeeksByDay[day].orEmpty(),
+            selectedWeekNumber = selectedWeekNumber
+        ) != CourseWeekDisplayState.HIDDEN
     }
 
     return WEEKDAYS + visibleWeekendDays

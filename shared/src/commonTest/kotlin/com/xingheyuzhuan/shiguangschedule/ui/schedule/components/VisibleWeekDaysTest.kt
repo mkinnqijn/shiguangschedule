@@ -76,4 +76,26 @@ class VisibleWeekDaysTest {
             )
         )
     }
+
+    @Test
+    fun oneTimeSaturdayCourseOnlyAddsColumnDuringItsWeekAndTheWeekBefore() {
+        val oneTimeSaturdayCourse = mapOf(6 to setOf(10))
+
+        assertEquals(
+            listOf(1, 2, 3, 4, 5),
+            resolveVisibleWeekDays(true, 8, oneTimeSaturdayCourse)
+        )
+        assertEquals(
+            listOf(1, 2, 3, 4, 5, 6),
+            resolveVisibleWeekDays(true, 9, oneTimeSaturdayCourse)
+        )
+        assertEquals(
+            listOf(1, 2, 3, 4, 5, 6),
+            resolveVisibleWeekDays(true, 10, oneTimeSaturdayCourse)
+        )
+        assertEquals(
+            listOf(1, 2, 3, 4, 5),
+            resolveVisibleWeekDays(true, 11, oneTimeSaturdayCourse)
+        )
+    }
 }
