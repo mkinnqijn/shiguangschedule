@@ -10,8 +10,8 @@ import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -64,6 +65,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.xingheyuzhuan.shiguangschedule.data.model.courseColorDisplayOrder
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.BorderTypeProto
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.ScheduleModeProto
 import com.xingheyuzhuan.shiguangschedule.ui.components.AdvancedColorPicker
@@ -303,16 +305,46 @@ fun ColorSchemeSection(
     onEditColor: (Int) -> Unit
 ) {
     val contentColor = if (isDarkSection) Color.White else Color.Black
+    val displayedColorIndices = remember(colors.size) {
+        courseColorDisplayOrder(colors.size)
+    }
 
     Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(bgColor).padding(16.dp)) {
         Text(title, style = MaterialTheme.typography.labelLarge, color = contentColor)
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(modifier = Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            colors.forEachIndexed { index, color ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(color).clickable { onEditColor(index) })
-                    Text("${index + 1}", style = MaterialTheme.typography.labelSmall, color = contentColor.copy(0.6f), modifier = Modifier.padding(top = 4.dp))
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            displayedColorIndices.chunked(6).forEachIndexed { rowIndex, rowColorIndices ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    rowColorIndices.forEachIndexed { columnIndex, colorIndex ->
+                        val displayNumber = rowIndex * 6 + columnIndex + 1
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .widthIn(max = 44.dp)
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                                    .clip(CircleShape)
+                                    .background(colors[colorIndex])
+                                    .clickable { onEditColor(colorIndex) }
+                            )
+                            Text(
+                                "$displayNumber",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = contentColor.copy(0.6f),
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
+                        }
+                    }
+                    repeat(6 - rowColorIndices.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }

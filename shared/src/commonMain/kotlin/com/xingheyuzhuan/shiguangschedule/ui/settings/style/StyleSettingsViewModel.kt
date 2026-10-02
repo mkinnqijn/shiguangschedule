@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.xingheyuzhuan.shiguangschedule.data.db.main.Course
 import com.xingheyuzhuan.shiguangschedule.data.db.main.CourseWithWeeks
 import com.xingheyuzhuan.shiguangschedule.data.db.main.TimeSlot
-import com.xingheyuzhuan.shiguangschedule.data.model.DualColor
+import com.xingheyuzhuan.shiguangschedule.data.model.updateCourseColorMap
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.BorderTypeProto
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.ScheduleModeProto
 import com.xingheyuzhuan.shiguangschedule.data.repository.AppSettingsRepository
@@ -255,27 +255,8 @@ class StyleSettingsViewModel(
      * @param isDark 是否为深色模式下的颜色
      */
     fun updatePrimaryColor(index: Int, color: Color, isDark: Boolean) = viewModelScope.launch {
-        // 1. 获取当前 Repository 中最新的样式快照
         val currentStyle = styleRepository.getStyleOnce()
-        // 2. 将 Proto 转出的 List 转换为 MutableList 以便修改
-        val updatedMaps = currentStyle.courseColorMaps.toMutableList()
-
-        // 3. 安全检查：如果索引越界（比如初始列表为空），则填充默认值
-        if (index >= updatedMaps.size) {
-            repeat(index - updatedMaps.size + 1) {
-                updatedMaps.add(DualColor(light = Color.Gray, dark = Color.Gray))
-            }
-        }
-
-        // 4. 更新对应索引位置的颜色
-        val oldPair = updatedMaps[index]
-        updatedMaps[index] = if (isDark) {
-            oldPair.copy(dark = color)
-        } else {
-            oldPair.copy(light = color)
-        }
-
-        // 5. 调用 Repository 的 setCourseColorMaps 接口写回 DataStore
+        val updatedMaps = updateCourseColorMap(currentStyle.courseColorMaps, index, color, isDark)
         styleRepository.setCourseColorMaps(updatedMaps)
     }
 

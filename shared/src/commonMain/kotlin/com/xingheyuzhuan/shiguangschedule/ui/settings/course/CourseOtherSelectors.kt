@@ -49,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xingheyuzhuan.shiguangschedule.data.model.DualColor
+import com.xingheyuzhuan.shiguangschedule.data.model.courseColorDisplayOrder
 import com.xingheyuzhuan.shiguangschedule.ui.theme.LocalIsDarkTheme
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -286,6 +287,9 @@ fun ColorPickerBottomSheet(
     val isDark = LocalIsDarkTheme.current
     val actionCancel = stringResource(Res.string.action_cancel)
     val actionConfirm = stringResource(Res.string.action_confirm)
+    val displayedColorIndices = remember(colorMaps.size) {
+        courseColorDisplayOrder(colorMaps.size)
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -310,15 +314,16 @@ fun ColorPickerBottomSheet(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                itemsIndexed(colorMaps) { index, dualColor ->
+                itemsIndexed(displayedColorIndices) { _, colorIndex ->
+                    val dualColor = colorMaps[colorIndex]
                     val color = if (isDark) dualColor.dark else dualColor.light
-                    val isSelected = tempSelectedIndex == index
+                    val isSelected = tempSelectedIndex == colorIndex
 
                     Box(
                         modifier = Modifier
                             .aspectRatio(1f)
                             .clip(CircleShape)
-                            .clickable { tempSelectedIndex = index }
+                            .clickable { tempSelectedIndex = colorIndex }
                             .then(
                                 if (isSelected) Modifier.border(3.dp, MaterialTheme.colorScheme.primary, CircleShape)
                                 else Modifier

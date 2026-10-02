@@ -91,6 +91,10 @@ data class ScheduleGridStyle(
             DualColor(light = Color(0xFFEFAAA5), dark = Color(0xFF7A3F3B)),
             DualColor(light = Color(0xFFEDB574), dark = Color(0xFF74501F)),
             DualColor(light = Color(0xFFC9B5DF), dark = Color(0xFF5D4773)),
+            DualColor(light = Color(0xFFE59A91), dark = Color(0xFF743833)),
+            DualColor(light = Color(0xFFF0D078), dark = Color(0xFF705919)),
+            DualColor(light = Color(0xFF8FCBC1), dark = Color(0xFF2D625C)),
+            DualColor(light = Color(0xFFAEB7E5), dark = Color(0xFF434E78)),
         )
 
         /**
@@ -121,6 +125,34 @@ data class ScheduleGridStyle(
             courseTextColorLong = null,
             backgroundImagePath = null
         )
+    }
+}
+
+internal val COURSE_COLOR_DISPLAY_ORDER = listOf(
+    9, 10, 11, 20, 17, 0,
+    18, 21, 1, 2, 3, 15,
+    4, 5, 22, 14, 6, 7,
+    13, 12, 23, 8, 19, 16
+)
+
+internal fun courseColorDisplayOrder(colorCount: Int): List<Int> {
+    if (colorCount <= 0) return emptyList()
+
+    val preferredOrder = COURSE_COLOR_DISPLAY_ORDER.filter { it < colorCount }
+    return preferredOrder + (0 until colorCount).filterNot { it in preferredOrder }
+}
+
+internal fun updateCourseColorMap(
+    colorMaps: List<DualColor>,
+    index: Int,
+    color: Color,
+    isDark: Boolean
+): List<DualColor> {
+    if (index !in colorMaps.indices) return colorMaps
+
+    return colorMaps.toMutableList().apply {
+        val oldPair = this[index]
+        this[index] = if (isDark) oldPair.copy(dark = color) else oldPair.copy(light = color)
     }
 }
 
