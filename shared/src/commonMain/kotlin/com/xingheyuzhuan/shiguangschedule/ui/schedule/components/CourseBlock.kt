@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -36,6 +37,34 @@ import com.xingheyuzhuan.shiguangschedule.data.db.main.TimeSlot
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.BorderTypeProto
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.ScheduleModeProto
 import com.xingheyuzhuan.shiguangschedule.ui.theme.LocalIsDarkTheme
+
+internal data class CourseBlockDetailLayout(
+    val locationMaxLines: Int,
+    val teacherVisible: Boolean
+)
+
+internal fun resolveCourseBlockDetailLayout(
+    locationVisible: Boolean,
+    teacherAvailable: Boolean,
+    locationSingleLineWidthPx: Float,
+    availableTextWidthPx: Float,
+    contentHeightPx: Float,
+    heightBeforeDetailsPx: Float,
+    detailLineHeightPx: Float
+): CourseBlockDetailLayout {
+    val locationNeedsWrapping = locationVisible && locationSingleLineWidthPx > availableTextWidthPx
+    val canFitTwoLocationLines = contentHeightPx >= heightBeforeDetailsPx + detailLineHeightPx * 2
+    val locationMaxLines = if (locationNeedsWrapping && canFitTwoLocationLines) 2 else 1
+    val locationLines = if (locationVisible) locationMaxLines else 0
+    val teacherVisible = teacherAvailable &&
+            !locationNeedsWrapping &&
+            contentHeightPx >= heightBeforeDetailsPx + detailLineHeightPx * (locationLines + 1)
+
+    return CourseBlockDetailLayout(
+        locationMaxLines = locationMaxLines,
+        teacherVisible = teacherVisible
+    )
+}
 
 @Composable
 fun CourseBlock(
@@ -140,16 +169,38 @@ fun CourseBlock(
         val teacher = course.teacher
         val position = course.position
         val locationVisible = !style.hideLocation && position.isNotBlank()
+        val locationText = if (locationVisible) {
+            val prefix = if (style.removeLocationAt) "" else "@"
+            "$prefix$position"
+        } else {
+            ""
+        }
         val contentHeight = (maxHeight - style.courseBlockInnerPadding * 2).coerceAtLeast(0.dp)
-        val nameLineHeight = with(density) { s13.toDp() } * 1.2f
-        val detailLineHeight = with(density) { s10.toDp() }
-        val minimumHeightBeforeTeacher =
-            nameLineHeight * 2 +
-                    (if (timeTextToShow != null) detailLineHeight else 0.dp) +
-                    (if (locationVisible) detailLineHeight else 0.dp)
-        val teacherVisible = !style.hideTeacher &&
-                teacher.isNotBlank() &&
-                contentHeight >= minimumHeightBeforeTeacher + detailLineHeight
+        val availableTextWidth = (maxWidth - style.courseBlockInnerPadding * 2).coerceAtLeast(0.dp)
+        val detailTextStyle = TextStyle(fontSize = s10, lineHeight = 1.em)
+        val textMeasurer = rememberTextMeasurer()
+        val locationSingleLineWidthPx = if (locationVisible) {
+            textMeasurer.measure(
+                text = locationText,
+                style = detailTextStyle,
+                maxLines = 1,
+                softWrap = false
+            ).size.width.toFloat()
+        } else {
+            0f
+        }
+        val nameLineHeightPx = with(density) { s13.toPx() } * 1.2f
+        val detailLineHeightPx = with(density) { s10.toPx() }
+        val detailLayout = resolveCourseBlockDetailLayout(
+            locationVisible = locationVisible,
+            teacherAvailable = !style.hideTeacher && teacher.isNotBlank(),
+            locationSingleLineWidthPx = locationSingleLineWidthPx,
+            availableTextWidthPx = with(density) { availableTextWidth.toPx() },
+            contentHeightPx = with(density) { contentHeight.toPx() },
+            heightBeforeDetailsPx = nameLineHeightPx * 2 +
+                    (if (timeTextToShow != null) detailLineHeightPx else 0f),
+            detailLineHeightPx = detailLineHeightPx
+        )
 
         // 课程文字内容容器
         Column(
@@ -182,19 +233,17 @@ fun CourseBlock(
             )
 
             if (locationVisible) {
-                val prefix = if (style.removeLocationAt) "" else "@"
                 Text(
-                    text = "$prefix$position",
-                    fontSize = s10,
+                    text = locationText,
                     color = textColor,
                     textAlign = textAlign,
-                    maxLines = 1,
+                    maxLines = detailLayout.locationMaxLines,
                     overflow = TextOverflow.Ellipsis,
-                    style = TextStyle(lineHeight = 1.em)
+                    style = detailTextStyle
                 )
             }
 
-            if (teacherVisible) {
+            if (detailLayout.teacherVisible) {
                 Text(
                     text = teacher,
                     fontSize = s10,
