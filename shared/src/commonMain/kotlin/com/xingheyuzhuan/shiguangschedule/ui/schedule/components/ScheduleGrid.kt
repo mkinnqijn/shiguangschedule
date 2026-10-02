@@ -55,8 +55,35 @@ fun ScheduleGrid(
         val pageTextColor = style.pageTextColor ?: MaterialTheme.colorScheme.onSurface
         val pageSubTextColor = pageTextColor.copy(alpha = 0.7f)
         val weekDays = stringArrayResource(Res.array.week_days_short_names).toList()
-        val reorderedWeekDays = rearrangeDays(weekDays, viewState.firstDayOfWeek)
-        val displayDays = if (viewState.showWeekends) reorderedWeekDays else reorderedWeekDays.take(5)
+        val visibleDays = remember(
+            viewState.mergedCourses,
+            viewState.showWeekends,
+            viewState.selectedWeekNumber
+        ) {
+            val courseWeeksByDay = viewState.mergedCourses
+                .groupBy { it.day }
+                .mapValues { (_, blocks) ->
+                    blocks.flatMap { block ->
+                        block.courses.flatMap { course -> course.weeks.map { it.weekNumber } }
+                    }.toSet()
+                }
+
+            resolveVisibleWeekDays(
+                showWeekends = viewState.showWeekends,
+                selectedWeekNumber = viewState.selectedWeekNumber,
+                courseWeeksByDay = courseWeeksByDay
+            )
+        }
+        val displayDays = visibleDays.map { day -> weekDays[day - 1] }
+        val displayDates = visibleDays.map { day ->
+            viewState.dates.getOrElse(mapDayToPageIndex(day, viewState.firstDayOfWeek)) { "" }
+        }
+        val displayTodayIndex = if (viewState.todayIndex in viewState.dates.indices) {
+            val todayDay = mapPageIndexToDay(viewState.todayIndex, viewState.firstDayOfWeek)
+            visibleDays.indexOf(todayDay)
+        } else {
+            -1
+        }
 
         val displayDaysCount = displayDays.size
         val is24HourMode = style.scheduleMode == ScheduleModeProto.TIME_24H_MODE
@@ -66,8 +93,8 @@ fun ScheduleGrid(
         val gridLineColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
         val strokeWidthPx = 1f
 
-        val singleSchedulables = remember(viewState.mergedCourses, viewState.firstDayOfWeek, viewState.showWeekends) {
-            calculateSingleSchedulables(viewState.mergedCourses, viewState.firstDayOfWeek, viewState.showWeekends)
+        val singleSchedulables = remember(viewState.mergedCourses, visibleDays) {
+            calculateSingleSchedulables(viewState.mergedCourses, visibleDays)
         }
         val sectionHeightPx = with(density) { style.sectionHeight.toPx() }
 
@@ -169,7 +196,7 @@ fun ScheduleGrid(
         }
 
         Column(Modifier.fillMaxSize()) {
-            DayHeader(style, displayDays, viewState.dates, viewState.currentYear, viewState.currentWeek, viewState.todayIndex, gridLineColor, pageTextColor, pageSubTextColor, strokeWidthPx)
+            DayHeader(style, displayDays, displayDates, viewState.currentYear, viewState.currentWeek, displayTodayIndex, gridLineColor, pageTextColor, pageSubTextColor, strokeWidthPx)
 
             Row(
                 modifier = Modifier
@@ -250,7 +277,7 @@ fun ScheduleGrid(
                                                             } else {
                                                                 val deltaCols = (state.bodyDragOffsetX / cellWidth).roundToInt()
                                                                 val targetDisplayIdx = (item.columnIndex + deltaCols).coerceIn(0, displayDaysCount - 1)
-                                                                val targetDay = mapDisplayIndexToDay(targetDisplayIdx, viewState.firstDayOfWeek)
+                                                                val targetDay = mapDisplayIndexToDay(targetDisplayIdx, visibleDays)
                                                                 var targetStart = intent.initialStartSection + (state.bodyDragOffsetY / sectionHeightPx)
                                                                 targetStart = if (is24HourMode) (targetStart / 0.25f).roundToInt() * 0.25f else targetStart.roundToInt().toFloat()
                                                                 targetStart = targetStart.coerceIn(0f, maxGridSections - intent.duration)
@@ -372,7 +399,7 @@ fun ScheduleGrid(
                                 drawLine(gridLineColor, Offset(0f, y), Offset(size.width, y), strokeWidth = strokeWidthPx)
                             }
                         }
-                        .pointerInput(displayDaysCount, sectionHeightPx, viewState.firstDayOfWeek, maxGridSections, is24HourMode, state.expandedItem) {
+                        .pointerInput(displayDaysCount, sectionHeightPx, visibleDays, maxGridSections, is24HourMode, state.expandedItem) {
                             detectTapGestures { offset ->
                                 if (state.expandedItem != null) {
                                     state.expandedItem = null
@@ -381,7 +408,7 @@ fun ScheduleGrid(
                                 }
                                 val dayIdx = (offset.x / (size.width / displayDaysCount)).toInt().coerceIn(0, displayDaysCount - 1)
                                 val secIdx = (offset.y / sectionHeightPx).toInt().coerceIn(0, maxGridSections - 1)
-                                actions.onGridCellClicked(mapDisplayIndexToDay(dayIdx, viewState.firstDayOfWeek), if (is24HourMode) secIdx else (secIdx + 1))
+                                actions.onGridCellClicked(mapDisplayIndexToDay(dayIdx, visibleDays), if (is24HourMode) secIdx else (secIdx + 1))
                             }
                         }
                 ) { measurables, constraints ->

@@ -309,6 +309,7 @@ fun WeeklyScheduleScreen(
                         dates = pageDateStrings,
                         currentYear = pageYearString,
                         currentWeek = weekStr,
+                        selectedWeekNumber = weekIndex,
                         timeSlots = uiState.timeSlots,
                         mergedCourses = pageCourses,
                         showWeekends = uiState.showWeekends,

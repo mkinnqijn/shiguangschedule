@@ -80,6 +80,7 @@ data class ScheduleGridViewState(
     val dates: List<String>,
     val currentYear: String,
     val currentWeek: String? = null,
+    val selectedWeekNumber: Int? = null,
     val timeSlots: List<TimeSlot>,
     val mergedCourses: List<MergedCourseBlock>,
     val showWeekends: Boolean,
@@ -452,12 +453,11 @@ fun TimeText(text: String, color: Color) {
  */
 fun calculateSingleSchedulables(
     mergedCourses: List<MergedCourseBlock>,
-    firstDayOfWeek: Int,
-    showWeekends: Boolean
+    visibleDays: List<Int>
 ): List<ISingleSchedulable> {
     val list = mutableListOf<ISingleSchedulable>()
     mergedCourses.forEach { block ->
-        val displayIdx = mapDayToDisplayIndex(block.day, firstDayOfWeek, showWeekends)
+        val displayIdx = mapDayToDisplayIndex(block.day, visibleDays)
         if (displayIdx != -1) {
             val layoutInfo = block.nonActiveRanges.firstOrNull() ?: (0f to 1f)
             block.courses.firstOrNull()?.let { course ->
@@ -476,14 +476,12 @@ fun calculateSingleSchedulables(
     return list
 }
 
-fun rearrangeDays(originalDays: List<String>, firstDayOfWeek: Int): List<String> {
-    val startIndex = (firstDayOfWeek - 1).coerceIn(0, 6)
-    return originalDays.subList(startIndex, originalDays.size) + originalDays.subList(0, startIndex)
-}
+fun mapDayToDisplayIndex(courseDay: Int, visibleDays: List<Int>): Int = visibleDays.indexOf(courseDay)
 
-fun mapDayToDisplayIndex(courseDay: Int, firstDayOfWeek: Int, showWeekends: Boolean): Int {
-    val idx = (courseDay - firstDayOfWeek + 7) % 7
-    return if (idx >= if (showWeekends) 7 else 5) -1 else idx
-}
+fun mapDisplayIndexToDay(idx: Int, visibleDays: List<Int>): Int = visibleDays[idx]
 
-fun mapDisplayIndexToDay(idx: Int, firstDayOfWeek: Int): Int = (firstDayOfWeek - 1 + idx) % 7 + 1
+fun mapDayToPageIndex(day: Int, firstDayOfWeek: Int): Int =
+    (day - firstDayOfWeek.coerceIn(1, 7) + 7) % 7
+
+fun mapPageIndexToDay(idx: Int, firstDayOfWeek: Int): Int =
+    (firstDayOfWeek.coerceIn(1, 7) - 1 + idx) % 7 + 1
