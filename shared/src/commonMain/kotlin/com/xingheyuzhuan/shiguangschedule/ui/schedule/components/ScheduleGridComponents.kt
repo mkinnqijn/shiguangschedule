@@ -36,6 +36,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -151,6 +152,19 @@ fun rememberScheduleGridState(
     }
 }
 
+internal fun shouldShowDayHeaderDate(
+    availableHeightDp: Float,
+    hideDateUnderDay: Boolean,
+    fontScale: Float
+): Boolean {
+    val verticalPaddingDp = 2f
+    val dayDateSpacingDp = 2f
+    val textHeightDp = (16f + 12f) * fontScale
+    val requiredHeightDp = verticalPaddingDp + dayDateSpacingDp + textHeightDp
+
+    return !hideDateUnderDay && availableHeightDp >= requiredHeightDp
+}
+
 /**
  * 课表顶部日期/星期标头组件
  */
@@ -168,7 +182,12 @@ fun DayHeader(
     strokeWidthPx: Float
 ) {
     BoxWithConstraints(Modifier.fillMaxWidth().height(style.dayHeaderHeight)) {
-        val shouldShowDate = !style.hideDateUnderDay && maxHeight >= 42.dp
+        val density = LocalDensity.current
+        val shouldShowDate = shouldShowDayHeaderDate(
+            availableHeightDp = maxHeight.value,
+            hideDateUnderDay = style.hideDateUnderDay,
+            fontScale = density.fontScale
+        )
 
         Row(Modifier.fillMaxSize()) {
             Box(
