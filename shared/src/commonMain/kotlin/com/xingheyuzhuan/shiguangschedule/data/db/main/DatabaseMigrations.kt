@@ -322,9 +322,17 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
     }
 }
 
+// 仅新增可空列，旧课程及其周次关系原样保留。
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override suspend fun migrate(connection: SQLiteConnection) {
+        connection.execSQL("ALTER TABLE courses ADD COLUMN widgetShortName TEXT")
+    }
+}
+
 // 【集中管理所有迁移对象】
 val ALL_MIGRATIONS = arrayOf(
     MIGRATION_1_2,
     MIGRATION_2_3,
-    MIGRATION_5_6
+    MIGRATION_5_6,
+    MIGRATION_6_7
 )

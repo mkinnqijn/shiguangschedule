@@ -53,6 +53,8 @@ import shiguangschedule.shared.generated.resources.common_dialog_msg_unsaved_cha
 import shiguangschedule.shared.generated.resources.common_dialog_title_abandon_changes
 import shiguangschedule.shared.generated.resources.delete_24px
 import shiguangschedule.shared.generated.resources.check_24px
+import shiguangschedule.shared.generated.resources.label_widget_short_name
+import shiguangschedule.shared.generated.resources.hint_widget_short_name
 import shiguangschedule.shared.generated.resources.label_course_name
 import shiguangschedule.shared.generated.resources.title_add_course
 import shiguangschedule.shared.generated.resources.title_edit_course
@@ -191,6 +193,16 @@ fun AddEditCourseScreen(
                     value = uiState.name,
                     onValueChange = viewModel::onNameChange,
                     label = { Text(stringResource(Res.string.label_course_name)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = uiState.widgetShortName,
+                    onValueChange = viewModel::onWidgetShortNameChange,
+                    label = { Text(stringResource(Res.string.label_widget_short_name)) },
+                    supportingText = { Text(stringResource(Res.string.hint_widget_short_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp)

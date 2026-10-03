@@ -6,7 +6,8 @@
     android:orientation="vertical"
     android:gravity="center_vertical"
     android:minHeight="60dp"
-    android:paddingVertical="8dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
     android:paddingHorizontal="4dp">
 
     <RelativeLayout
@@ -98,7 +99,7 @@
                 android:id="@+id/tv_course_teacher"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:includeFontPadding="false"
+                android:includeFontPadding="true"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/widget_text_hint"

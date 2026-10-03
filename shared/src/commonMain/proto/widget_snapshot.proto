@@ -18,6 +18,7 @@ message WidgetCourseProto {
   bool is_skipped = 7;
   string teacher = 8;
   string date = 9;
+  string widget_short_name = 10;
 }
 
 message WidgetSnapshot {

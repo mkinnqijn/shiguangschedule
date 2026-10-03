@@ -8,9 +8,13 @@ import android.widget.RemoteViews
 import com.xingheyuzhuan.shiguangschedule.MainActivity
 import com.xingheyuzhuan.shiguangschedule.R
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
+import com.xingheyuzhuan.shiguangschedule.widget.narrowDisplayName
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
+import com.xingheyuzhuan.shiguangschedule.widget.selectTodayCourses
+import com.xingheyuzhuan.shiguangschedule.widget.validCoursesOn
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlin.math.roundToInt
 
 object CompactNativeRenderer {
 
@@ -34,7 +38,6 @@ object CompactNativeRenderer {
         val now = LocalTime.now()
         val today = LocalDate.now()
         val tomorrow = today.plusDays(1)
-        val allCourses = snapshot.courses
         val currentWeek = if (snapshot.current_week <= 0) null else snapshot.current_week
 
         // 头部基础信息渲染
@@ -57,14 +60,9 @@ object CompactNativeRenderer {
         }
 
         // 核心调度逻辑
-        val todayStr = today.toString()
-        val tomorrowStr = tomorrow.toString()
-
-        val todayRemaining = allCourses.filter {
-            (it.date == todayStr || it.date.isBlank()) && !it.is_skipped && try { LocalTime.parse(it.end_time) > now } catch (e: Exception) { true }
-        }.sortedBy { it.start_time }
-
-        val tomorrowCourses = allCourses.filter { it.date == tomorrowStr && !it.is_skipped }.sortedBy { it.start_time }
+        val todaySelection = snapshot.selectTodayCourses(today, now)
+        val todayRemaining = todaySelection.remainingTodayCourses
+        val tomorrowCourses = snapshot.validCoursesOn(tomorrow)
 
         // 决定渲染路径
         when {
@@ -79,8 +77,7 @@ object CompactNativeRenderer {
             }
             else -> {
                 // 状态 3：今明无课
-                val hasCoursesToday = allCourses.any { it.date == todayStr || it.date.isBlank() }
-                val tip = if (!hasCoursesToday) {
+                val tip = if (todaySelection.allTodayCourses.isEmpty()) {
                     context.getString(R.string.text_no_courses_today)
                 } else {
                     context.getString(R.string.widget_today_courses_finished)
@@ -114,7 +111,13 @@ object CompactNativeRenderer {
 
         courses.forEachIndexed { index, course ->
             val itemRv = RemoteViews(context.packageName, R.layout.widget_item_course_common)
-            itemRv.setTextViewText(R.id.tv_course_name, course.name)
+            // Keep the text's top inset; reclaim only trailing space inside compact items.
+            // Otherwise the vertical parent can measure the second teacher line too short.
+            val density = context.resources.displayMetrics.density
+            val itemPadding = (4 * density).roundToInt()
+            itemRv.setViewPadding(R.id.course_item_root, itemPadding, itemPadding, itemPadding,
+                (2 * density).roundToInt())
+            itemRv.setTextViewText(R.id.tv_course_name, course.narrowDisplayName())
             itemRv.setTextViewText(R.id.tv_course_position, course.position)
             itemRv.setTextViewText(R.id.tv_course_time, "${course.start_time.take(5)}-${course.end_time.take(5)}")
 

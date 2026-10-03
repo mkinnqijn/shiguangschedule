@@ -16,7 +16,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp">
+            android:layout_marginBottom="4dp">
 
             <TextView
                 android:id="@+id/tv_header_title"
@@ -46,19 +46,11 @@
 
             <include layout="@layout/widget_item_course_list_node" />
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/widget_divider"
-                android:alpha="0.2" />
+            <include layout="@layout/widget_divider_list_vertical" />
 
             <include layout="@layout/widget_item_course_list_node" />
 
-            <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/widget_divider"
-                android:alpha="0.2" />
+            <include layout="@layout/widget_divider_list_vertical" />
 
             <include layout="@layout/widget_item_course_list_node" />
         </LinearLayout>

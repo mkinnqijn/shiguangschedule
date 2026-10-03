@@ -8,6 +8,8 @@ import android.widget.RemoteViews
 import com.xingheyuzhuan.shiguangschedule.MainActivity
 import com.xingheyuzhuan.shiguangschedule.R
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
+import com.xingheyuzhuan.shiguangschedule.widget.narrowDisplayName
+import com.xingheyuzhuan.shiguangschedule.widget.selectTodayCourses
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -28,10 +30,9 @@ object TinyNativeRenderer {
         rv.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 
         // 数据准备
-        val allCourses = snapshot.courses
         val currentWeek = if (snapshot.current_week <= 0) null else snapshot.current_week
         val now = LocalTime.now()
-        val todayStr = LocalDate.now().toString()
+        val today = LocalDate.now()
 
         // 状态渲染逻辑
 
@@ -42,12 +43,8 @@ object TinyNativeRenderer {
         }
 
         // 情况 B：开学期间数据过滤
-        val todayAllCourses = allCourses.filter { it.date == todayStr || it.date.isBlank() }
-        val nextCourse = todayAllCourses.firstOrNull {
-            !it.is_skipped && try {
-                LocalTime.parse(it.end_time) > now
-            } catch (_: Exception) { true }
-        }
+        val todaySelection = snapshot.selectTodayCourses(today, now)
+        val nextCourse = todaySelection.remainingTodayCourses.firstOrNull()
 
         if (nextCourse != null) {
             // 有课显示逻辑
@@ -55,15 +52,13 @@ object TinyNativeRenderer {
             rv.setViewVisibility(R.id.bubble_frame, View.VISIBLE)
             rv.setViewVisibility(R.id.container_status, View.GONE)
 
-            rv.setTextViewText(R.id.tv_course_name, nextCourse.name)
+            rv.setTextViewText(R.id.tv_course_name, nextCourse.narrowDisplayName())
 
             val timeText = "${nextCourse.start_time.take(5)} - ${nextCourse.end_time.take(5)}"
             rv.setTextViewText(R.id.tv_course_time, timeText)
             rv.setTextViewText(R.id.tv_course_position, nextCourse.position)
 
-            // 剩余课程数统计 (基于原始列表索引)
-            val nextCourseIndex = todayAllCourses.indexOf(nextCourse)
-            val remainingCount = todayAllCourses.size - nextCourseIndex
+            val remainingCount = todaySelection.remainingTodayCourses.size
             rv.setTextViewText(R.id.tv_remaining_count, remainingCount.toString())
 
             // 颜色渲染
@@ -76,7 +71,7 @@ object TinyNativeRenderer {
             }
         } else {
             // 无课状态
-            val tip = if (todayAllCourses.isEmpty()) {
+            val tip = if (todaySelection.allTodayCourses.isEmpty()) {
                 context.getString(R.string.text_no_courses_today)
             } else {
                 context.getString(R.string.widget_today_courses_finished)

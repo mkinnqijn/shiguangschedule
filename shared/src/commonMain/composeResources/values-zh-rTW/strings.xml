@@ -605,4 +605,6 @@
     <string name="schedule_type_combo">組合作息</string>
     <string name="desc_schedule_management">支援公共作息與組合作息</string>
     <string name="action_apply_to_all_schemes">套用到所有方案</string>
+    <string name="label_widget_short_name">課程簡稱</string>
+    <string name="hint_widget_short_name">選填，僅用於窄版小工具；留空顯示正式名稱。同名課程的各上課方案共用。</string>
 </resources>

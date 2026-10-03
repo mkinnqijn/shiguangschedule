@@ -28,6 +28,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
@@ -59,6 +61,7 @@ class WidgetDataSynchronizer(
 
     // 内部通道：用于向各平台分发“数据同步完成”的通知信号
     private val _syncCompletedChannel = Channel<Unit>(Channel.CONFLATED)
+    private val syncMutex = Mutex()
 
     /** 暴露给各平台（Android / iOS）监听的同步完成事件流 */
     val syncCompletedFlow: Flow<Unit> = _syncCompletedChannel.receiveAsFlow()
@@ -86,13 +89,7 @@ class WidgetDataSynchronizer(
             }
         }
         .map { (appSettings, coursesWithWeeks, config) ->
-            if (config != null) {
-                performSync(appSettings, config, coursesWithWeeks)
-            } else {
-                // 配置为空时清空小组件数据
-                widgetRepository.deleteAll()
-                widgetRepository.insertOrUpdateAppSettings(WidgetAppSettings(id = 1, semesterStartDate = null))
-            }
+            synchronize(appSettings, config, coursesWithWeeks)
         }
 
     init {
@@ -137,20 +134,30 @@ class WidgetDataSynchronizer(
     /**
      * 手动触发一次性数据同步（挂起函数）。
      */
-    suspend fun syncNow() {
+    suspend fun syncNow(notifyCompletion: Boolean = true) {
         val appSettings = appSettingsRepository.getAppSettings().first()
         val tableId = appSettings.currentCourseTableId
 
         val coursesWithWeeks = if (tableId.isNotEmpty()) courseTableRepository.getCoursesWithWeeksByTableId(tableId).first() else emptyList()
         val courseConfig = if (tableId.isNotEmpty()) appSettingsRepository.getCourseConfigOnce(tableId) else null
 
+        synchronize(appSettings, courseConfig, coursesWithWeeks)
+        if (notifyCompletion) {
+            _syncCompletedChannel.trySend(Unit)
+        }
+    }
+
+    private suspend fun synchronize(
+        appSettings: AppSettingsModel,
+        courseConfig: CourseTableConfig?,
+        coursesWithWeeks: List<CourseWithWeeks>
+    ) = syncMutex.withLock {
         if (courseConfig != null) {
             performSync(appSettings, courseConfig, coursesWithWeeks)
         } else {
             widgetRepository.deleteAll()
             widgetRepository.insertOrUpdateAppSettings(WidgetAppSettings(id = 1, semesterStartDate = null))
         }
-        _syncCompletedChannel.trySend(Unit)
     }
 
     /**
@@ -250,6 +257,7 @@ class WidgetDataSynchronizer(
                     val widgetCourse = WidgetCourse(
                         id = "${course.id}-$dateString",
                         name = course.name,
+                        widgetShortName = course.widgetShortName,
                         teacher = course.teacher,
                         position = course.position,
                         startTime = startTime,
@@ -263,11 +271,8 @@ class WidgetDataSynchronizer(
             }
         }
 
-        // 刷新 Widget 数据库：先清空旧数据，再批量插入新计算的课程
-        widgetRepository.deleteAll()
-        if (widgetCourses.isNotEmpty()) {
-            widgetRepository.insertAll(widgetCourses)
-        }
+        // 原子替换缓存，Widget 刷新不会读到清空与重新插入之间的临时状态。
+        widgetRepository.replaceAll(widgetCourses)
     }
 
     /**

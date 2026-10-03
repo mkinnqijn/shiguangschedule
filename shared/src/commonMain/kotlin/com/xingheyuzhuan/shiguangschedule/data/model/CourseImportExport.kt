@@ -89,7 +89,8 @@ object CourseImportExport {
         val customStartTime: String? = null,
         val customEndTime: String? = null,
         val color: Int? = null,
-        val remark: String? = null
+        val remark: String? = null,
+        val widgetShortName: String? = null
     )
 
     // 导出时使用的 JSON 模型
@@ -114,7 +115,8 @@ object CourseImportExport {
         val isCustomTime: Boolean = false,
         val customStartTime: String? = null,
         val customEndTime: String? = null,
-        val remark: String?
+        val remark: String?,
+        val widgetShortName: String? = null
     )
 
     // 导入和导出都通用的时间段模型

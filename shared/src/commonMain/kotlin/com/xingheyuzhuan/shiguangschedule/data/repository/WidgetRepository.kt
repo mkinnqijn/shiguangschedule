@@ -46,6 +46,11 @@ class WidgetRepository(
         _dataUpdatedChannel.trySend(Unit)
     }
 
+    suspend fun replaceAll(courses: List<WidgetCourse>) {
+        widgetCourseDao.replaceAll(courses)
+        _dataUpdatedChannel.trySend(Unit)
+    }
+
     /**
      * 删除所有 Widget 课程。
      */
