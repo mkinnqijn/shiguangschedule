@@ -4,6 +4,7 @@ import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.OnConflictStrategy
 import androidx.room3.Query
+import androidx.room3.Transaction
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -37,4 +38,13 @@ interface WidgetCourseDao {
      */
     @Query("DELETE FROM widget_courses")
     suspend fun deleteAll()
+
+    /** 原子替换缓存，避免刷新线程在清空与重新插入之间读到临时空表。 */
+    @Transaction
+    suspend fun replaceAll(courses: List<WidgetCourse>) {
+        deleteAll()
+        if (courses.isNotEmpty()) {
+            insertAll(courses)
+        }
+    }
 }

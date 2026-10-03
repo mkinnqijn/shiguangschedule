@@ -4,7 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import com.xingheyuzhuan.shiguangschedule.widget.WorkManagerHelper
-import com.xingheyuzhuan.shiguangschedule.widget.updateAllWidgets
+import com.xingheyuzhuan.shiguangschedule.widget.syncAndUpdateAllWidgets
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -15,9 +15,14 @@ class CompactNativeProvider : AppWidgetProvider() {
     private val scope = MainScope()
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+        val pendingResult = goAsync()
         scope.launch {
-            // 触发全局刷新逻辑
-            updateAllWidgets(context)
+            try {
+                // 触发全局刷新逻辑
+                syncAndUpdateAllWidgets(context)
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 

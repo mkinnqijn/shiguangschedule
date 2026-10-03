@@ -16,7 +16,7 @@ import androidx.core.content.getSystemService
 import com.xingheyuzhuan.shiguangschedule.MainActivity
 import com.xingheyuzhuan.shiguangschedule.R
 import com.xingheyuzhuan.shiguangschedule.data.model.AutoControlMode
-import com.xingheyuzhuan.shiguangschedule.widget.updateAllWidgets
+import com.xingheyuzhuan.shiguangschedule.widget.syncAndUpdateAllWidgets
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -119,7 +119,7 @@ class CourseAlarmReceiver : BroadcastReceiver(), KoinComponent {
                         if (!courseIdString.isNullOrEmpty()) {
                             showNotification(ctx, slotId, courseName, position, teacher, isCompatMode)
                             removeAlarmIdFromPrefs(ctx, courseIdString)
-                            updateAllWidgets(ctx)
+                            syncAndUpdateAllWidgets(ctx)
                         }
                     }
                 } catch (e: Exception) {

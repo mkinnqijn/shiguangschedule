@@ -4,7 +4,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import com.xingheyuzhuan.shiguangschedule.widget.WorkManagerHelper
-import com.xingheyuzhuan.shiguangschedule.widget.updateAllWidgets
+import com.xingheyuzhuan.shiguangschedule.widget.syncAndUpdateAllWidgets
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -13,9 +13,14 @@ class DoubleDaysNativeProvider : AppWidgetProvider() {
     private val scope = MainScope()
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+        val pendingResult = goAsync()
         scope.launch {
-            // 当系统请求更新（或数据变化手动触发）时渲染 UI
-            updateAllWidgets(context)
+            try {
+                // 当系统请求更新（或数据变化手动触发）时渲染 UI
+                syncAndUpdateAllWidgets(context)
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 

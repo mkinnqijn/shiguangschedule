@@ -9,6 +9,7 @@ import com.xingheyuzhuan.shiguangschedule.data.model.ScheduleGridStyle
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.ScheduleGridStyleProto
 import com.xingheyuzhuan.shiguangschedule.data.model.toProto
 import com.xingheyuzhuan.shiguangschedule.data.repository.WidgetRepository
+import com.xingheyuzhuan.shiguangschedule.data.sync.WidgetDataSynchronizer
 import com.xingheyuzhuan.shiguangschedule.widget.compact.CompactNativeProvider
 import com.xingheyuzhuan.shiguangschedule.widget.compact.CompactNativeRenderer
 import com.xingheyuzhuan.shiguangschedule.widget.double_days.DoubleDaysNativeProvider
@@ -29,7 +30,21 @@ import kotlin.time.Duration.Companion.seconds
 // 创建一个局部的注入代理中心，用于在全局顶层方法中安全提取注入实例
 private object WidgetDependencyContainer : KoinComponent {
     val repository: WidgetRepository by inject()
+    val synchronizer: WidgetDataSynchronizer by inject()
     val styleDataStore: DataStore<ScheduleGridStyleProto> by inject()
+}
+
+/**
+ * 系统或定时任务主动刷新 Widget 时，先把主数据库的当前数据同步到 Widget 缓存，
+ * 再生成 RemoteViews，避免把旧缓存误判成当天无课。
+ */
+suspend fun syncAndUpdateAllWidgets(context: Context) {
+    try {
+        WidgetDependencyContainer.synchronizer.syncNow(notifyCompletion = false)
+    } catch (e: Exception) {
+        Log.e("WidgetUpdateHelper", "同步 Widget 数据失败，继续使用最近一次有效缓存", e)
+    }
+    updateAllWidgets(context)
 }
 
 /**

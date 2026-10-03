@@ -18,7 +18,7 @@ class WidgetUiUpdateWorker(
 ) : CoroutineWorker(appContext, workerParams) {
     override suspend fun doWork(): Result {
         Log.d("WidgetSync", "WidgetUiUpdateWorker 开始执行")
-        updateAllWidgets(applicationContext)
+        syncAndUpdateAllWidgets(applicationContext)
         return Result.success()
     }
 }

@@ -10,7 +10,6 @@ import com.xingheyuzhuan.shiguangschedule.R
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
 import java.time.LocalDate
-import java.time.LocalTime
 
 object ListVerticalNativeRenderer {
 
@@ -28,7 +27,6 @@ object ListVerticalNativeRenderer {
         )
         rv.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 
-        val now = LocalTime.now()
         val today = LocalDate.now()
         val tomorrow = today.plusDays(1)
         val allCourses = snapshot.courses
@@ -46,8 +44,8 @@ object ListVerticalNativeRenderer {
         val todayStr = today.toString()
         val tomorrowStr = tomorrow.toString()
 
-        val todayRemaining = allCourses.filter {
-            (it.date == todayStr || it.date.isBlank()) && !it.is_skipped && try { LocalTime.parse(it.end_time) > now } catch (_: Exception) { true }
+        val todayCourses = allCourses.filter {
+            it.date == todayStr && !it.is_skipped
         }.sortedBy { it.start_time }
 
         val tomorrowCourses = allCourses.filter {
@@ -58,11 +56,11 @@ object ListVerticalNativeRenderer {
         val dayOfWeekStr = weekDaysArray[today.dayOfWeek.value - 1]
 
         when {
-            todayRemaining.isNotEmpty() -> {
+            todayCourses.isNotEmpty() -> {
                 val weekText = context.getString(R.string.title_current_week, currentWeek.toString())
                 rv.setTextViewText(R.id.tv_header_title, "$weekText  $dayOfWeekStr")
-                rv.setTextViewText(R.id.tv_header_count_summary, context.getString(R.string.widget_remaining_courses_format_today, todayRemaining.size))
-                renderCourseContent(context, rv, todayRemaining, snapshot)
+                rv.setTextViewText(R.id.tv_header_count_summary, context.getString(R.string.widget_courses_format_today, todayCourses.size))
+                renderCourseContent(context, rv, todayCourses, snapshot)
             }
             tomorrowCourses.isNotEmpty() -> {
                 rv.setTextViewText(R.id.tv_header_title, context.getString(R.string.widget_tomorrow_course_preview))
@@ -70,11 +68,9 @@ object ListVerticalNativeRenderer {
                 renderCourseContent(context, rv, tomorrowCourses, snapshot)
             }
             else -> {
-                val hasCoursesToday = allCourses.any { it.date == todayStr || it.date.isBlank() }
-                val tip = if (!hasCoursesToday) context.getString(R.string.text_no_courses_today) else context.getString(R.string.widget_today_courses_finished)
                 val weekText = context.getString(R.string.title_current_week, currentWeek.toString())
                 rv.setTextViewText(R.id.tv_header_title, "$weekText  $dayOfWeekStr")
-                showInnerStatus(rv, tip)
+                showInnerStatus(rv, context.getString(R.string.text_no_courses_today))
                 rv.setTextViewText(R.id.tv_header_count_summary, "")
             }
         }

@@ -9,6 +9,7 @@ import com.xingheyuzhuan.shiguangschedule.data.db.main.MainAppDatabaseConstructo
 import com.xingheyuzhuan.shiguangschedule.data.db.widget.WIDGET_MIGRATION_3_4
 import com.xingheyuzhuan.shiguangschedule.data.db.widget.WidgetDatabase
 import com.xingheyuzhuan.shiguangschedule.data.db.widget.WidgetDatabaseConstructor
+import com.xingheyuzhuan.shiguangschedule.data.db.widget.WidgetCourse
 import java.io.File
 import java.nio.file.Files
 import kotlinx.coroutines.flow.first
@@ -24,6 +25,27 @@ import org.junit.Assert.assertNull
 @org.junit.runner.RunWith(org.robolectric.RobolectricTestRunner::class)
 @org.robolectric.annotation.Config(sdk = [35], application = android.app.Application::class)
 class WidgetShortNameMigrationTest {
+    @Test
+    fun widgetCourseCacheIsReplacedAsOneDaoOperation() = runBlocking {
+        val db = Room.inMemoryDatabaseBuilder<WidgetDatabase>(org.robolectric.RuntimeEnvironment.getApplication()) {
+            WidgetDatabaseConstructor.initialize()
+        }.setDriver(AndroidSQLiteDriver()).build()
+        try {
+            val dao = db.widgetCourseDao()
+            val old = WidgetCourse("old", "旧缓存", "", "", "08:00", "09:00", false, "2026-10-03", 0)
+            val fresh = WidgetCourse("fresh", "最新课程", "教师", "教室", "15:25", "17:00", false, "2026-10-03", 1)
+            dao.insertAll(listOf(old))
+
+            dao.replaceAll(listOf(fresh))
+            assertEquals(listOf(fresh), dao.getAllWidgetCourses().first())
+
+            dao.replaceAll(emptyList())
+            assertEquals(emptyList<WidgetCourse>(), dao.getAllWidgetCourses().first())
+        } finally {
+            db.close()
+        }
+    }
+
     @Test
     fun mainDatabaseUpgradesFromRealVersion6SchemaAndRetainsCoursesAndWeeks() = runBlocking {
         val dir = Files.createTempDirectory("course-migration").toFile()

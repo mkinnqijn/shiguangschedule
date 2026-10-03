@@ -11,7 +11,6 @@ import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
 import com.xingheyuzhuan.shiguangschedule.widget.narrowDisplayName
 import java.time.LocalDate
-import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 object DoubleDaysNativeRenderer {
@@ -47,22 +46,20 @@ object DoubleDaysNativeRenderer {
         rv.setViewVisibility(R.id.container_vacation, View.GONE)
         rv.setTextViewText(R.id.tv_current_week, context.getString(R.string.status_current_week_format, currentWeek))
 
-        val now = LocalTime.now()
         val today = LocalDate.now()
         val tomorrow = today.plusDays(1)
         val allCourses = snapshot.courses
 
         // 渲染左侧：今日
-        val todayCourses = allCourses.filter { it.date == today.toString() || it.date.isBlank() }
-        val remainingToday = todayCourses.filter {
-            !it.is_skipped && try { LocalTime.parse(it.end_time) > now } catch (_: Exception) { true }
+        val todayCourses = allCourses.filter {
+            it.date == today.toString() && !it.is_skipped
         }.sortedBy { it.start_time }
 
         renderColumn(
             context, rv,
             R.id.container_today, R.id.tv_today_date, R.id.tv_today_footer,
             R.id.empty_today_container,
-            today, remainingToday, remainingToday.size,
+            today, todayCourses, todayCourses.size,
             true, snapshot
         )
 
@@ -126,9 +123,7 @@ object DoubleDaysNativeRenderer {
             rootRv.setViewVisibility(emptyContainerId, View.GONE)
             rootRv.setViewVisibility(footerId, View.VISIBLE)
 
-            // 设置统计文案：今日显示“剩余”，其他显示“共有”
-            val countRes = if (isToday) R.string.widget_course_remaining_count else R.string.widget_course_total_count
-            rootRv.setTextViewText(footerId, context.getString(countRes, totalCount))
+            rootRv.setTextViewText(footerId, context.getString(R.string.widget_course_total_count, totalCount))
 
             // 循环渲染所有课程
             displayCourses.forEachIndexed { index, course ->
