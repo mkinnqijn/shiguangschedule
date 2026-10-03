@@ -479,6 +479,7 @@
     <string name="label_font_scale">Font Scale</string>
     <string name="label_corner_radius">Corner Radius</string>
     <string name="label_inner_padding">Inner Padding</string>
+    <string name="label_course_text_top_padding">Course Text Top Spacing</string>
     <string name="label_outer_padding">Outer Spacing</string>
     <string name="label_opacity">Opacity</string>
     <string name="title_light_color_pool">Light Mode Color Pool</string>

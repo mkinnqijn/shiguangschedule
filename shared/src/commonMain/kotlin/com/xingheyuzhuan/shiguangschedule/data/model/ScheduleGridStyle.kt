@@ -28,6 +28,7 @@ data class ScheduleGridStyle(
     val courseBlockCornerRadiusDp: Float = DEFAULT_BLOCK_CORNER_RADIUS,
     val courseBlockOuterPaddingDp: Float = DEFAULT_BLOCK_OUTER_PADDING,
     val courseBlockInnerPaddingDp: Float = DEFAULT_BLOCK_INNER_PADDING,
+    val courseTextTopPaddingDp: Float = DEFAULT_COURSE_TEXT_TOP_PADDING,
     val courseBlockAlphaFloat: Float = DEFAULT_BLOCK_ALPHA,
 
     // 颜色列表
@@ -67,6 +68,7 @@ data class ScheduleGridStyle(
         val DEFAULT_BLOCK_CORNER_RADIUS = 4f
         val DEFAULT_BLOCK_OUTER_PADDING = 1f
         val DEFAULT_BLOCK_INNER_PADDING = 4f
+        val DEFAULT_COURSE_TEXT_TOP_PADDING = DEFAULT_BLOCK_INNER_PADDING
         val DEFAULT_BLOCK_ALPHA = 1f
         val DEFAULT_FONT_SCALE = 1f
 
@@ -107,6 +109,7 @@ data class ScheduleGridStyle(
             courseBlockCornerRadiusDp = DEFAULT_BLOCK_CORNER_RADIUS,
             courseBlockOuterPaddingDp = DEFAULT_BLOCK_OUTER_PADDING,
             courseBlockInnerPaddingDp = DEFAULT_BLOCK_INNER_PADDING,
+            courseTextTopPaddingDp = DEFAULT_COURSE_TEXT_TOP_PADDING,
             courseBlockAlphaFloat = DEFAULT_BLOCK_ALPHA,
             courseColorMaps = DEFAULT_COLOR_MAPS,
             courseBlockFontScale = DEFAULT_FONT_SCALE,
@@ -199,6 +202,9 @@ fun ScheduleGridStyleProto.toCompose(): ScheduleGridStyle {
         courseBlockCornerRadiusDp = this.course_block_corner_radius_dp ?: d.courseBlockCornerRadiusDp,
         courseBlockOuterPaddingDp = this.course_block_outer_padding_dp ?: d.courseBlockOuterPaddingDp,
         courseBlockInnerPaddingDp = this.course_block_inner_padding_dp ?: d.courseBlockInnerPaddingDp,
+        courseTextTopPaddingDp = this.course_text_top_padding_dp
+            ?: this.course_block_inner_padding_dp
+            ?: d.courseTextTopPaddingDp,
 
         // 3. 透明度与缩放
         courseBlockAlphaFloat = this.course_block_alpha_float ?: d.courseBlockAlphaFloat,
@@ -240,6 +246,7 @@ fun ScheduleGridStyle.toProto(): ScheduleGridStyleProto {
         course_block_corner_radius_dp = this.courseBlockCornerRadiusDp,
         course_block_outer_padding_dp = this.courseBlockOuterPaddingDp,
         course_block_inner_padding_dp = this.courseBlockInnerPaddingDp,
+        course_text_top_padding_dp = this.courseTextTopPaddingDp,
         course_block_alpha_float = this.courseBlockAlphaFloat,
         course_block_font_scale = this.courseBlockFontScale,
         course_color_maps = this.courseColorMaps.map { it.toProto() },

@@ -103,6 +103,7 @@ import shiguangschedule.shared.generated.resources.image_24px
 import shiguangschedule.shared.generated.resources.label_border_type
 import shiguangschedule.shared.generated.resources.label_corner_radius
 import shiguangschedule.shared.generated.resources.label_course_text_color
+import shiguangschedule.shared.generated.resources.label_course_text_top_padding
 import shiguangschedule.shared.generated.resources.label_day_header_height
 import shiguangschedule.shared.generated.resources.label_font_scale
 import shiguangschedule.shared.generated.resources.label_hide_date_under_day
@@ -233,6 +234,7 @@ fun SettingsListContent(
         StyleSliderItem(stringResource(Res.string.label_font_scale), currentStyle.fontScale, 0.5f..2.0f, 0.1f) { viewModel.updateCourseBlockFontScale(it) }
         StyleSliderItem(stringResource(Res.string.label_corner_radius), currentStyle.courseBlockCornerRadius.value, 0f..24f, 1f) { viewModel.updateCornerRadius(it) }
         StyleSliderItem(stringResource(Res.string.label_inner_padding), currentStyle.courseBlockInnerPadding.value, 0f..12f, 1f) { viewModel.updateInnerPadding(it) }
+        StyleSliderItem(stringResource(Res.string.label_course_text_top_padding), currentStyle.courseTextTopPadding.value, 0f..20f, 1f) { viewModel.updateCourseTextTopPadding(it) }
         StyleSliderItem(stringResource(Res.string.label_outer_padding), currentStyle.courseBlockOuterPadding.value, 0f..8f, 1f) { viewModel.updateOuterPadding(it) }
         StyleSliderItem(stringResource(Res.string.label_opacity), currentStyle.courseBlockAlpha, 0.1f..1f, 0.05f) { viewModel.updateAlpha(it) }
 
@@ -451,6 +453,27 @@ fun ScheduleGridContent(
     }
 }
 
+internal fun snapStyleSliderValue(
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    stepValue: Float
+): Float {
+    val clampedValue = value.coerceIn(range.start, range.endInclusive)
+    if (stepValue <= 0f) return clampedValue
+
+    val stepCount = ((clampedValue - range.start) / stepValue).roundToInt()
+    return (range.start + stepCount * stepValue).coerceIn(range.start, range.endInclusive)
+}
+
+internal fun styleSliderSteps(
+    range: ClosedFloatingPointRange<Float>,
+    stepValue: Float
+): Int {
+    if (stepValue <= 0f) return 0
+    val intervalCount = ((range.endInclusive - range.start) / stepValue).roundToInt()
+    return (intervalCount - 1).coerceAtLeast(0)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StyleSliderItem(
@@ -464,18 +487,17 @@ fun StyleSliderItem(
     val isIntegerStep = stepValue >= 1f
 
     fun formatValue(v: Float): String {
+        val snappedValue = snapStyleSliderValue(v, range, stepValue)
         return if (isIntegerStep) {
-            "${v.toInt()}"
+            "${snappedValue.roundToInt()}"
         } else {
-            val rounded = (v * 10).roundToInt() / 10.0
+            val rounded = (snappedValue * 10).roundToInt() / 10.0
             if (rounded % 1.0 == 0.0) "${rounded.toInt()}.0" else "$rounded"
         }
     }
 
     val steps = remember(range, stepValue) {
-        if (stepValue > 0f) {
-            ((range.endInclusive - range.start) / stepValue).toInt() - 1
-        } else 0
+        styleSliderSteps(range, stepValue)
     }
 
     if (showDialog) {
@@ -514,13 +536,7 @@ fun StyleSliderItem(
                 TextButton(onClick = {
                     val newValue = textFieldValue.toFloatOrNull()
                     if (newValue != null) {
-                        val clampedValue = newValue.coerceIn(range.start, range.endInclusive)
-                        val steppedValue = if (stepValue > 0f) {
-                            val count = ((clampedValue - range.start) / stepValue).roundToInt()
-                            range.start + count * stepValue
-                        } else clampedValue
-
-                        onValueChange(steppedValue)
+                        onValueChange(snapStyleSliderValue(newValue, range, stepValue))
                         showDialog = false
                     }
                 }) {
@@ -558,7 +574,7 @@ fun StyleSliderItem(
         }
         Slider(
             value = value,
-            onValueChange = onValueChange,
+            onValueChange = { onValueChange(snapStyleSliderValue(it, range, stepValue)) },
             valueRange = range,
             steps = if (steps > 0) steps else 0,
             modifier = Modifier.height(32.dp),

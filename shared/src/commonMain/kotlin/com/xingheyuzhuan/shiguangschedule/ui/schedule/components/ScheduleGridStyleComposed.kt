@@ -24,6 +24,7 @@ data class ScheduleGridStyleComposed(
     val courseBlockCornerRadius: Dp,
     val courseBlockOuterPadding: Dp,
     val courseBlockInnerPadding: Dp,
+    val courseTextTopPadding: Dp,
     val courseBlockAlpha: Float,
 
     // 壁纸路径
@@ -65,6 +66,7 @@ data class ScheduleGridStyleComposed(
                 courseBlockCornerRadius = this.courseBlockCornerRadiusDp.dp,
                 courseBlockOuterPadding = this.courseBlockOuterPaddingDp.dp,
                 courseBlockInnerPadding = this.courseBlockInnerPaddingDp.dp,
+                courseTextTopPadding = this.courseTextTopPaddingDp.dp,
                 courseBlockAlpha = this.courseBlockAlphaFloat,
                 fontScale = this.courseBlockFontScale,
                 courseColorMaps = this.courseColorMaps.map { dual ->

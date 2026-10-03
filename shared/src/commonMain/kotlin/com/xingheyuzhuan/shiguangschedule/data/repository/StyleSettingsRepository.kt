@@ -167,6 +167,11 @@ class StyleSettingsRepository(
         it.copy(course_block_inner_padding_dp = paddingDp)
     }
 
+    /** 设置顶部对齐时课程文字距课程块顶部的距离 (DP) */
+    suspend fun setCourseTextTopPadding(paddingDp: Float) = updateStyle {
+        it.copy(course_text_top_padding_dp = paddingDp)
+    }
+
     /** 设置课程块透明度 */
     suspend fun setCourseBlockAlpha(alpha: Float) = updateStyle {
         it.copy(course_block_alpha_float = alpha)

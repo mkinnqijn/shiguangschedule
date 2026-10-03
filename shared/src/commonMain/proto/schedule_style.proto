@@ -40,6 +40,7 @@ message ScheduleGridStyleProto {
   optional float course_block_outer_padding_dp = 5; // 块与网格线的间距
   optional float course_block_inner_padding_dp = 6; // 块内文字填充
   optional float course_block_alpha_float = 7;      // 不透明度 (0.0 - 1.0)
+  optional float course_text_top_padding_dp = 28;   // 顶部对齐时文字距课程块顶部的距离
 
   // 重叠/堆叠颜色配置 (ARGB Long)
   // 已经废弃:删除旧颜色字段并保留编号

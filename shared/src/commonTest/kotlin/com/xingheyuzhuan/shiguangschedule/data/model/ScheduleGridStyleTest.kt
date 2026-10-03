@@ -9,6 +9,29 @@ import kotlin.test.assertEquals
 class ScheduleGridStyleTest {
 
     @Test
+    fun missingTextTopPaddingKeepsExistingInnerPaddingVisual() {
+        val restored = ScheduleGridStyleProto(
+            course_block_inner_padding_dp = 2f
+        ).toCompose()
+
+        assertEquals(2f, restored.courseTextTopPaddingDp)
+    }
+
+    @Test
+    fun textTopPaddingPersistsIndependently() {
+        val proto = ScheduleGridStyle(
+            courseBlockInnerPaddingDp = 3f,
+            courseTextTopPaddingDp = 12f
+        ).toProto()
+        val restored = ScheduleGridStyleProto.ADAPTER.decode(
+            ScheduleGridStyleProto.ADAPTER.encode(proto)
+        ).toCompose()
+
+        assertEquals(3f, restored.courseBlockInnerPaddingDp)
+        assertEquals(12f, restored.courseTextTopPaddingDp)
+    }
+
+    @Test
     fun defaultColorMapsKeepOriginalTwentyIndexesAndAppendFourColors() {
         val originalColors = listOf(
             DualColor(Color(0xFFFFCC99), Color(0xFF663300)),

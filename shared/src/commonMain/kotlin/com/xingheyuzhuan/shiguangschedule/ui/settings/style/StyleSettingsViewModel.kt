@@ -172,6 +172,11 @@ class StyleSettingsViewModel(
         styleRepository.setCourseBlockInnerPadding(padding)
     }
 
+    /** 更新顶部对齐时课程文字距课程块顶部的距离 */
+    fun updateCourseTextTopPadding(padding: Float) = viewModelScope.launch {
+        styleRepository.setCourseTextTopPadding(padding)
+    }
+
     fun updateAlpha(alpha: Float) = viewModelScope.launch { styleRepository.setCourseBlockAlpha(alpha) }
 
     // --- UI 渲染开关 API ---

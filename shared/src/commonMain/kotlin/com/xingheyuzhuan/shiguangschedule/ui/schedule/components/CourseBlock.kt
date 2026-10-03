@@ -175,7 +175,12 @@ fun CourseBlock(
         } else {
             ""
         }
-        val contentHeight = (maxHeight - style.courseBlockInnerPadding * 2).coerceAtLeast(0.dp)
+        val topPadding = if (style.textAlignCenterVertical) {
+            style.courseBlockInnerPadding
+        } else {
+            style.courseTextTopPadding
+        }
+        val contentHeight = (maxHeight - topPadding - style.courseBlockInnerPadding).coerceAtLeast(0.dp)
         val availableTextWidth = (maxWidth - style.courseBlockInnerPadding * 2).coerceAtLeast(0.dp)
         val detailTextStyle = TextStyle(fontSize = s10, lineHeight = 1.em)
         val textMeasurer = rememberTextMeasurer()
@@ -204,7 +209,12 @@ fun CourseBlock(
 
         // 课程文字内容容器
         Column(
-            modifier = Modifier.fillMaxSize().padding(style.courseBlockInnerPadding),
+            modifier = Modifier.fillMaxSize().padding(
+                start = style.courseBlockInnerPadding,
+                top = topPadding,
+                end = style.courseBlockInnerPadding,
+                bottom = style.courseBlockInnerPadding
+            ),
             horizontalAlignment = horizontalAlignment,
             verticalArrangement = verticalArrangement
         ) {
