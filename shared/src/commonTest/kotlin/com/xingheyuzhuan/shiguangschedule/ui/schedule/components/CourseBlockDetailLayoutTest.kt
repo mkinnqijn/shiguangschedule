@@ -69,8 +69,17 @@ class CourseBlockDetailLayoutTest {
 
     @Test
     fun nextWeekPreviewWeakensAlphaWithoutChangingNormalCourse() {
-        assertEquals(0.82f, resolveCourseBlockAlpha(1f, true))
+        assertEquals(0.66f, resolveCourseBlockAlpha(1f, true))
+        assertEquals(0.33f, resolveCourseBlockAlpha(0.5f, true))
         assertEquals(0.5f, resolveCourseBlockAlpha(0.5f, false))
+    }
+
+    @Test
+    fun nextWeekPreviewWeakensContentAndChipTogether() {
+        assertEquals(0.55f, NEXT_WEEK_TEXT_ALPHA_FACTOR)
+        assertEquals(0.44f, NEXT_WEEK_SECONDARY_TEXT_ALPHA_FACTOR)
+        assertEquals(0.11f, NEXT_WEEK_CHIP_BACKGROUND_ALPHA)
+        assertEquals(0.47f, NEXT_WEEK_CHIP_TEXT_ALPHA)
     }
 
     @Test

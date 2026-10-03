@@ -47,8 +47,11 @@ internal const val NEXT_WEEK_CHIP_VERTICAL_PADDING_DP = 1f
 internal const val NEXT_WEEK_CHIP_TOP_MARGIN_DP = 2f
 internal const val NEXT_WEEK_CHIP_BOTTOM_GAP_DP = 2f
 internal const val NEXT_WEEK_CHIP_MIN_WIDTH_DP = 44f
-internal const val NEXT_WEEK_PREVIEW_ALPHA_FACTOR = 0.82f
-internal const val NEXT_WEEK_TEXT_ALPHA_FACTOR = 0.68f
+internal const val NEXT_WEEK_PREVIEW_ALPHA_FACTOR = 0.66f
+internal const val NEXT_WEEK_TEXT_ALPHA_FACTOR = 0.55f
+internal const val NEXT_WEEK_SECONDARY_TEXT_ALPHA_FACTOR = 0.44f
+internal const val NEXT_WEEK_CHIP_BACKGROUND_ALPHA = 0.11f
+internal const val NEXT_WEEK_CHIP_TEXT_ALPHA = 0.47f
 
 internal fun resolveCourseBlockBaseColor(
     normalCourseColor: Color,
@@ -168,7 +171,7 @@ fun CourseBlock(
         textColor
     }
     val secondaryTextColor = if (showNextWeekPreview) {
-        textColor.copy(alpha = textColor.alpha * 0.55f)
+        textColor.copy(alpha = textColor.alpha * NEXT_WEEK_SECONDARY_TEXT_ALPHA_FACTOR)
     } else {
         textColor.copy(alpha = 0.8f)
     }
@@ -364,12 +367,12 @@ fun CourseBlock(
                     .padding(top = NEXT_WEEK_CHIP_TOP_MARGIN_DP.dp)
                     .widthIn(min = NEXT_WEEK_CHIP_MIN_WIDTH_DP.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.14f))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = NEXT_WEEK_CHIP_BACKGROUND_ALPHA))
                     .padding(
                         horizontal = 6.dp,
                         vertical = NEXT_WEEK_CHIP_VERTICAL_PADDING_DP.dp
                     ),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.58f),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = NEXT_WEEK_CHIP_TEXT_ALPHA),
                 fontSize = 8.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
