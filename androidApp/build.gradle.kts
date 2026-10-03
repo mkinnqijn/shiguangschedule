@@ -11,6 +11,11 @@ kotlin {
     jvmToolchain(21)
 }
 
+val persistentAndroidUserHome = System.getenv("ANDROID_USER_HOME")
+    ?: System.getenv("USERPROFILE")?.let { "$it/.android" }
+    ?: System.getenv("HOME")?.let { "$it/.android" }
+    ?: "${System.getProperty("user.home")}/.android"
+
 android {
     namespace = "com.xingheyuzhuan.shiguangschedule"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -25,10 +30,20 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("persistentDevDebug") {
+            storeFile = file("$persistentAndroidUserHome/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
+            signingConfig = signingConfigs.getByName("persistentDevDebug")
         }
 
         release {
