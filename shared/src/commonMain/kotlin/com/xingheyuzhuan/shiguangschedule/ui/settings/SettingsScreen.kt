@@ -61,6 +61,7 @@ import shiguangschedule.shared.generated.resources.desc_course_conversion
 import shiguangschedule.shared.generated.resources.desc_course_management
 import shiguangschedule.shared.generated.resources.desc_current_week_manual
 import shiguangschedule.shared.generated.resources.desc_first_day_of_week
+import shiguangschedule.shared.generated.resources.desc_holiday_date_records
 import shiguangschedule.shared.generated.resources.desc_manage_course_tables
 import shiguangschedule.shared.generated.resources.desc_more_options
 import shiguangschedule.shared.generated.resources.desc_notification_settings
@@ -78,6 +79,7 @@ import shiguangschedule.shared.generated.resources.item_course_conversion
 import shiguangschedule.shared.generated.resources.item_course_management
 import shiguangschedule.shared.generated.resources.item_current_week
 import shiguangschedule.shared.generated.resources.item_first_day_of_week
+import shiguangschedule.shared.generated.resources.item_holiday_date_records
 import shiguangschedule.shared.generated.resources.item_more_options
 import shiguangschedule.shared.generated.resources.item_personalization
 import shiguangschedule.shared.generated.resources.item_quick_actions
@@ -407,6 +409,11 @@ private fun AdvancedSettingsSection(onNavigate: (Destination) -> Unit) {
                 title = stringResource(Res.string.item_personalization),
                 subtitle = stringResource(Res.string.desc_personalization),
                 onClick = { onNavigate(Destination.StyleSettings) }
+            )
+            SettingItem(
+                title = stringResource(Res.string.item_holiday_date_records),
+                subtitle = stringResource(Res.string.desc_holiday_date_records),
+                onClick = { onNavigate(Destination.HolidayDateSettings) }
             )
             SettingItem(
                 title = stringResource(Res.string.item_more_options),

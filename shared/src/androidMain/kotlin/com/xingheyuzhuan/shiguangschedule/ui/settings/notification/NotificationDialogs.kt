@@ -163,9 +163,8 @@ fun NotificationDialogDispatcher(
             val deleteSuccessMsg = stringResource(Res.string.toast_delete_success)
             ViewSkippedDatesDialog(
                 dates = uiState.skippedDates,
-                manualDates = uiState.manualSkippedDates,
-                onRemoveManualDate = { date ->
-                    viewModel.removeManualSkippedDate(date) { result ->
+                onRemoveDate = { date ->
+                    viewModel.removeSkippedDate(date) { result ->
                         result.fold(
                             onSuccess = { ToastManager.show(deleteSuccessMsg) },
                             onFailure = { error ->
@@ -446,8 +445,7 @@ private fun SkippedDateButton(
 @Composable
 fun ViewSkippedDatesDialog(
     dates: Set<String>,
-    manualDates: Set<String>,
-    onRemoveManualDate: (String) -> Unit,
+    onRemoveDate: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
@@ -479,17 +477,15 @@ fun ViewSkippedDatesDialog(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSecondaryContainer
                                 )
-                                if (date in manualDates) {
-                                    IconButton(
-                                        onClick = { onRemoveManualDate(date) },
-                                        modifier = Modifier.size(36.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = vectorResource(Res.drawable.delete_24px),
-                                            contentDescription = stringResource(Res.string.a11y_delete),
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
+                                IconButton(
+                                    onClick = { onRemoveDate(date) },
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = vectorResource(Res.drawable.delete_24px),
+                                        contentDescription = stringResource(Res.string.a11y_delete),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
                                 }
                             }
                         }

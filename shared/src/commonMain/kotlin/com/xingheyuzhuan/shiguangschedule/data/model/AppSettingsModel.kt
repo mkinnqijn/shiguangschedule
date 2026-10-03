@@ -91,6 +91,9 @@ data class AppSettingsModel(
     /** 用户手动添加的跳过日期 */
     val manualSkippedDates: Set<String> = emptySet(),
 
+    /** 用户明确删除、不应被官方更新重新加入的日期 */
+    val excludedOfficialSkippedDates: Set<String> = emptySet(),
+
     /** 自动化模式的总开关 */
     val autoModeEnabled: Boolean = false,
 
@@ -137,6 +140,7 @@ data class AppSettingsModel(
         val KEY_SKIPPED_DATES = stringSetPreferencesKey("skipped_dates")
         val KEY_OFFICIAL_SKIPPED_DATES = stringSetPreferencesKey("official_skipped_dates")
         val KEY_MANUAL_SKIPPED_DATES = stringSetPreferencesKey("manual_skipped_dates")
+        val KEY_EXCLUDED_OFFICIAL_SKIPPED_DATES = stringSetPreferencesKey("excluded_official_skipped_dates")
         val KEY_AUTO_MODE_ENABLED = booleanPreferencesKey("auto_mode_enabled")
         val KEY_AUTO_CONTROL_MODE = stringPreferencesKey("auto_control_mode")
         val KEY_COMPAT_WEARABLE_SYNC = booleanPreferencesKey("compat_wearable_sync")
@@ -157,7 +161,8 @@ data class AppSettingsModel(
             val skippedDateSources = resolveSkippedDateSources(
                 legacyDates = legacySkippedDates,
                 storedOfficialDates = prefs[KEY_OFFICIAL_SKIPPED_DATES],
-                storedManualDates = prefs[KEY_MANUAL_SKIPPED_DATES]
+                storedManualDates = prefs[KEY_MANUAL_SKIPPED_DATES],
+                storedExcludedOfficialDates = prefs[KEY_EXCLUDED_OFFICIAL_SKIPPED_DATES]
             )
             return AppSettingsModel(
                 currentCourseTableId = prefs[KEY_CURRENT_COURSE_TABLE_ID] ?: fallbackTableId.ifEmpty { d.currentCourseTableId },
@@ -166,6 +171,7 @@ data class AppSettingsModel(
                 skippedDates = skippedDateSources.effectiveDates,
                 officialSkippedDates = skippedDateSources.officialDates,
                 manualSkippedDates = skippedDateSources.manualDates,
+                excludedOfficialSkippedDates = skippedDateSources.excludedOfficialDates,
                 autoModeEnabled = prefs[KEY_AUTO_MODE_ENABLED] ?: d.autoModeEnabled,
                 autoControlMode = AutoControlMode.fromString(prefs[KEY_AUTO_CONTROL_MODE]),
                 compatWearableSync = prefs[KEY_COMPAT_WEARABLE_SYNC] ?: d.compatWearableSync,

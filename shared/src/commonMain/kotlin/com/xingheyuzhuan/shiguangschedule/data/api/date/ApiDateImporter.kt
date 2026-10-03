@@ -72,7 +72,11 @@ object ApiDateImporter {
 
             val currentSettings = appSettingsRepository.getAppSettings().first()
             val updatedSettings = currentSettings.copy(
-                skippedDates = mergeSkippedDates(skippedDates, currentSettings.manualSkippedDates),
+                skippedDates = mergeSkippedDates(
+                    officialDates = skippedDates,
+                    manualDates = currentSettings.manualSkippedDates,
+                    excludedOfficialDates = currentSettings.excludedOfficialSkippedDates
+                ),
                 officialSkippedDates = skippedDates
             )
             appSettingsRepository.insertOrUpdateAppSettings(updatedSettings)

@@ -87,6 +87,7 @@ class AppSettingsRepository(
             prefs[AppSettingsModel.KEY_SKIPPED_DATES] = newSettings.skippedDates
             prefs[AppSettingsModel.KEY_OFFICIAL_SKIPPED_DATES] = newSettings.officialSkippedDates
             prefs[AppSettingsModel.KEY_MANUAL_SKIPPED_DATES] = newSettings.manualSkippedDates
+            prefs[AppSettingsModel.KEY_EXCLUDED_OFFICIAL_SKIPPED_DATES] = newSettings.excludedOfficialSkippedDates
             prefs[AppSettingsModel.KEY_AUTO_MODE_ENABLED] = newSettings.autoModeEnabled
             prefs[AppSettingsModel.KEY_AUTO_CONTROL_MODE] = newSettings.autoControlMode.value
             prefs[AppSettingsModel.KEY_COMPAT_WEARABLE_SYNC] = newSettings.compatWearableSync

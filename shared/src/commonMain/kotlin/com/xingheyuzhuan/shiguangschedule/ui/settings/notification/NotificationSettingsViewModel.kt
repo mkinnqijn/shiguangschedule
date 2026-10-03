@@ -6,6 +6,7 @@ import com.xingheyuzhuan.shiguangschedule.data.api.date.ApiDateImporter
 import com.xingheyuzhuan.shiguangschedule.data.model.AutoControlMode
 import com.xingheyuzhuan.shiguangschedule.data.model.expandSkippedDateRange
 import com.xingheyuzhuan.shiguangschedule.data.model.mergeSkippedDates
+import com.xingheyuzhuan.shiguangschedule.data.model.removeSkippedDateFromSources
 import com.xingheyuzhuan.shiguangschedule.data.repository.AppSettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -48,7 +49,6 @@ data class NotificationSettingsUiState(
     val reminderEnabled: Boolean = false,
     val remindBeforeMinutes: Int = 15,
     val skippedDates: Set<String> = emptySet(),
-    val manualSkippedDates: Set<String> = emptySet(),
     val isLoading: Boolean = false,
     val exactAlarmStatus: Boolean = false,
     val dndPermissionStatus: Boolean = false,
@@ -85,7 +85,6 @@ class NotificationSettingsViewModel(
                     reminderEnabled = settings.reminderEnabled,
                     remindBeforeMinutes = settings.remindBeforeMinutes,
                     skippedDates = settings.skippedDates,
-                    manualSkippedDates = settings.manualSkippedDates,
                     autoModeEnabled = settings.autoModeEnabled,
                     autoControlMode = settings.autoControlMode,
                     compatWearableSync = settings.compatWearableSync
@@ -200,7 +199,8 @@ class NotificationSettingsViewModel(
                     currentSettings.copy(
                         skippedDates = emptySet(),
                         officialSkippedDates = emptySet(),
-                        manualSkippedDates = emptySet()
+                        manualSkippedDates = emptySet(),
+                        excludedOfficialSkippedDates = emptySet()
                     )
                 )
             }
@@ -224,7 +224,8 @@ class NotificationSettingsViewModel(
                     currentSettings.copy(
                         skippedDates = mergeSkippedDates(
                             currentSettings.officialSkippedDates,
-                            updatedManualDates
+                            updatedManualDates,
+                            currentSettings.excludedOfficialSkippedDates
                         ),
                         manualSkippedDates = updatedManualDates
                     )
@@ -235,21 +236,24 @@ class NotificationSettingsViewModel(
         }
     }
 
-    fun removeManualSkippedDate(
+    fun removeSkippedDate(
         date: String,
         onResult: (Result<Unit>) -> Unit = {}
     ) {
         viewModelScope.launch {
             val result = runCatching {
                 val currentSettings = appSettingsRepository.getAppSettings().first()
-                val updatedManualDates = currentSettings.manualSkippedDates - date
+                val updatedSources = removeSkippedDateFromSources(
+                    officialDates = currentSettings.officialSkippedDates,
+                    manualDates = currentSettings.manualSkippedDates,
+                    excludedOfficialDates = currentSettings.excludedOfficialSkippedDates,
+                    date = date
+                )
                 appSettingsRepository.insertOrUpdateAppSettings(
                     currentSettings.copy(
-                        skippedDates = mergeSkippedDates(
-                            currentSettings.officialSkippedDates,
-                            updatedManualDates
-                        ),
-                        manualSkippedDates = updatedManualDates
+                        skippedDates = updatedSources.effectiveDates,
+                        manualSkippedDates = updatedSources.manualDates,
+                        excludedOfficialSkippedDates = updatedSources.excludedOfficialDates
                     )
                 )
             }

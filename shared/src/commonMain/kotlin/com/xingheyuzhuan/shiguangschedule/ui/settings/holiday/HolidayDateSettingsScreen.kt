@@ -1,6 +1,5 @@
-package com.xingheyuzhuan.shiguangschedule.ui.settings.notification
+package com.xingheyuzhuan.shiguangschedule.ui.settings.holiday
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -16,16 +15,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.xingheyuzhuan.shiguangschedule.ui.settings.notification.NotificationDialogType
+import com.xingheyuzhuan.shiguangschedule.ui.settings.notification.NotificationSettingsViewModel
+import com.xingheyuzhuan.shiguangschedule.ui.settings.notification.PlatformNotificationDialogDispatcher
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
 import org.koin.compose.viewmodel.koinViewModel
 import shiguangschedule.shared.generated.resources.Res
 import shiguangschedule.shared.generated.resources.arrow_back_24px
-import shiguangschedule.shared.generated.resources.title_course_notification_settings
+import shiguangschedule.shared.generated.resources.title_holiday_date_records
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationSettingsScreen(
+fun HolidayDateSettingsScreen(
     onBack: () -> Unit,
     viewModel: NotificationSettingsViewModel = koinViewModel()
 ) {
@@ -34,7 +36,7 @@ fun NotificationSettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(Res.string.title_course_notification_settings)) },
+                title = { Text(stringResource(Res.string.title_holiday_date_records)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(vectorResource(Res.drawable.arrow_back_24px), contentDescription = null)
@@ -48,40 +50,22 @@ fun NotificationSettingsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            // 常规卡片由于各平台差异巨大，采用 expect 隔离由各平台自行实现
             item {
-                PlatformGeneralSettingsSection(
+                HolidayDateSettingsCard(
                     uiState = uiState,
-                    viewModel = viewModel
+                    onUpdateHolidays = { viewModel.updateHolidays() },
+                    onAddDates = { viewModel.showDialog(NotificationDialogType.AddSkippedDates) },
+                    onViewDates = { viewModel.showDialog(NotificationDialogType.ViewSkippedDates) },
+                    onClearDates = { viewModel.showDialog(NotificationDialogType.ClearConfirmation) }
                 )
             }
         }
     }
 
-    // 平台专属的弹窗派发器也通过 expect 隔离
     PlatformNotificationDialogDispatcher(
         uiState = uiState,
         viewModel = viewModel
     )
 }
-
-/**
- * 平台专属的常规设置区域声明
- */
-expect @Composable
-fun PlatformGeneralSettingsSection(
-    uiState: NotificationSettingsUiState,
-    viewModel: NotificationSettingsViewModel
-)
-
-/**
- * 平台专属的弹窗派发器声明
- */
-expect @Composable
-fun PlatformNotificationDialogDispatcher(
-    uiState: NotificationSettingsUiState,
-    viewModel: NotificationSettingsViewModel
-)
