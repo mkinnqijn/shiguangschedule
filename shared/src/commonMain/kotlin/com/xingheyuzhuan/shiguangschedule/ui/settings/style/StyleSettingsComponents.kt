@@ -234,7 +234,7 @@ fun SettingsListContent(
         StyleSliderItem(stringResource(Res.string.label_font_scale), currentStyle.fontScale, 0.5f..2.0f, 0.1f) { viewModel.updateCourseBlockFontScale(it) }
         StyleSliderItem(stringResource(Res.string.label_corner_radius), currentStyle.courseBlockCornerRadius.value, 0f..24f, 1f) { viewModel.updateCornerRadius(it) }
         StyleSliderItem(stringResource(Res.string.label_inner_padding), currentStyle.courseBlockInnerPadding.value, 0f..12f, 1f) { viewModel.updateInnerPadding(it) }
-        StyleSliderItem(stringResource(Res.string.label_course_text_top_padding), currentStyle.courseTextTopPadding.value, 0f..20f, 1f) { viewModel.updateCourseTextTopPadding(it) }
+        StyleSliderItem(stringResource(Res.string.label_course_text_top_padding), currentStyle.courseTextTopPadding.value, 0f..80f, 1f) { viewModel.updateCourseTextTopPadding(it) }
         StyleSliderItem(stringResource(Res.string.label_outer_padding), currentStyle.courseBlockOuterPadding.value, 0f..8f, 1f) { viewModel.updateOuterPadding(it) }
         StyleSliderItem(stringResource(Res.string.label_opacity), currentStyle.courseBlockAlpha, 0.1f..1f, 0.05f) { viewModel.updateAlpha(it) }
 

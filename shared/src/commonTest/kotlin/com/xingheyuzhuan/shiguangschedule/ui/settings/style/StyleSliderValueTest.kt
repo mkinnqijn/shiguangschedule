@@ -21,7 +21,8 @@ class StyleSliderValueTest {
 
     @Test
     fun courseTextTopPaddingRangeHasOneDpSteps() {
-        assertEquals(19, styleSliderSteps(0f..20f, 1f))
-        assertEquals(2f, snapStyleSliderValue(1.999999f, 0f..20f, 1f))
+        assertEquals(79, styleSliderSteps(0f..80f, 1f))
+        assertEquals(2f, snapStyleSliderValue(1.999999f, 0f..80f, 1f))
+        assertEquals(80f, snapStyleSliderValue(80f, 0f..80f, 1f))
     }
 }
