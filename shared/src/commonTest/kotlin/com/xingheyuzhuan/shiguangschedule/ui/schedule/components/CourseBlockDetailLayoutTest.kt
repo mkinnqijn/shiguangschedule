@@ -65,6 +65,31 @@ class CourseBlockDetailLayoutTest {
     }
 
     @Test
+    fun holidayStatusOverridesNextWeekPreview() {
+        assertEquals(
+            CourseBlockStatus.HOLIDAY,
+            resolveCourseBlockStatus(isHoliday = true, isVisualDemoted = true, isFloating = false)
+        )
+        assertEquals(
+            CourseBlockStatus.NEXT_WEEK_PREVIEW,
+            resolveCourseBlockStatus(isHoliday = false, isVisualDemoted = true, isFloating = false)
+        )
+        assertEquals(
+            CourseBlockStatus.NORMAL,
+            resolveCourseBlockStatus(isHoliday = false, isVisualDemoted = false, isFloating = false)
+        )
+    }
+
+    @Test
+    fun statusChipDoesNotFollowBodyOffset() {
+        val headerHeight = nextWeekHeaderReservedHeightDp(true, 1f)
+
+        assertEquals(15f, headerHeight)
+        assertEquals(15f, resolveCourseBodyTopPaddingDp(true, false, 4f, 0f, headerHeight))
+        assertEquals(64f, resolveCourseBodyTopPaddingDp(true, false, 4f, 64f, headerHeight))
+    }
+
+    @Test
     fun nextWeekPreviewWeakensAlphaWithoutChangingNormalCourse() {
         assertEquals(0.82f, resolveCourseBlockAlpha(1f, true))
         assertEquals(0.41f, resolveCourseBlockAlpha(0.5f, true))

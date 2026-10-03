@@ -244,6 +244,7 @@ fun ScheduleGrid(
                                 CourseBlock(
                                     courseWrapper = item.courseWrapper,
                                     isVisualDemoted = item.parentBlock.isVisualDemoted,
+                                    isHoliday = item.parentBlock.isHoliday,
                                     style = style,
                                     timeSlots = viewState.timeSlots,
                                     isFloating = isExpanded,

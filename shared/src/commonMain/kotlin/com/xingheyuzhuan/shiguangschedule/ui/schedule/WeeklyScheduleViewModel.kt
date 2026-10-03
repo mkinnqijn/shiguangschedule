@@ -50,6 +50,7 @@ data class MergedCourseBlock(
     val courses: List<CourseWithWeeks>,
     val needsProportionalRendering: Boolean = false,
     val isVisualDemoted: Boolean = false,
+    val isHoliday: Boolean = false,
     val nonActiveRanges: List<Pair<Float, Float>> = emptyList(),
     val clusterCourses: List<CourseWithWeeks> = emptyList()
 )
@@ -201,7 +202,23 @@ class WeeklyScheduleViewModel(
                 val daySlotsFlow = timeScheduleRepository.observeEffectiveTimeSlots(tableId, targetDateForSlots)
 
                 combine(coursesFlow, daySlotsFlow) { courses, daySlots ->
-                    day.toString() to mergeCourses(courses, daySlots, pageWeekNum ?: -1, mode)
+                    val selectedWeekNumber = pageWeekNum ?: -1
+                    val mergedCourses = mergeCourses(courses, daySlots, selectedWeekNumber, mode)
+                    val semesterStartDate = config.semesterStartDate?.let { startDate ->
+                        runCatching { LocalDate.parse(startDate) }.getOrNull()
+                    }
+                    val coursesWithHolidayState = mergedCourses.map { block ->
+                        block.copy(
+                            isHoliday = isCourseDateSkipped(
+                                skippedDates = settings.skippedDates,
+                                semesterStartDate = semesterStartDate,
+                                selectedWeekNumber = selectedWeekNumber,
+                                courseDay = block.day,
+                                firstDayOfWeek = config.firstDayOfWeek
+                            )
+                        )
+                    }
+                    day.toString() to coursesWithHolidayState
                 }
             }) { results -> results.toMap() }
         } else {

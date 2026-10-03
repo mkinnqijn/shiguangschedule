@@ -42,6 +42,23 @@ internal data class CourseBlockDetailLayout(
     val teacherVisible: Boolean
 )
 
+internal enum class CourseBlockStatus {
+    NORMAL,
+    NEXT_WEEK_PREVIEW,
+    HOLIDAY
+}
+
+internal fun resolveCourseBlockStatus(
+    isHoliday: Boolean,
+    isVisualDemoted: Boolean,
+    isFloating: Boolean
+): CourseBlockStatus = when {
+    isFloating -> CourseBlockStatus.NORMAL
+    isHoliday -> CourseBlockStatus.HOLIDAY
+    isVisualDemoted -> CourseBlockStatus.NEXT_WEEK_PREVIEW
+    else -> CourseBlockStatus.NORMAL
+}
+
 internal const val NEXT_WEEK_CHIP_LINE_HEIGHT_SP = 9f
 internal const val NEXT_WEEK_CHIP_VERTICAL_PADDING_DP = 1f
 internal const val NEXT_WEEK_CHIP_TOP_MARGIN_DP = 2f
@@ -145,6 +162,7 @@ internal fun resolveCourseBlockDetailLayout(
 fun CourseBlock(
     courseWrapper: CourseWithWeeks,
     isVisualDemoted: Boolean,
+    isHoliday: Boolean,
     style: ScheduleGridStyleComposed,
     timeSlots: List<TimeSlot>,
     modifier: Modifier = Modifier,
@@ -161,24 +179,29 @@ fun CourseBlock(
     }
     val fallbackColorAdapted: Color = if (isDarkTheme) style.courseColorMaps.first().dark else style.courseColorMaps.first().light
 
-    val showNextWeekPreview = isVisualDemoted && !isFloating
+    val courseBlockStatus = resolveCourseBlockStatus(
+        isHoliday = isHoliday,
+        isVisualDemoted = isVisualDemoted,
+        isFloating = isFloating
+    )
+    val showSpecialStatus = courseBlockStatus != CourseBlockStatus.NORMAL
     val normalCourseColor = courseColorAdapted ?: fallbackColorAdapted
     val scheduleBackgroundColor = MaterialTheme.colorScheme.surface
     val courseBaseColor = resolveCourseBlockBaseColor(
         normalCourseColor = normalCourseColor,
         scheduleBackgroundColor = scheduleBackgroundColor,
-        showNextWeekPreview = showNextWeekPreview
+        showNextWeekPreview = showSpecialStatus
     )
     val normalAlpha = if (isFloating) 0.95f else style.courseBlockAlpha
-    val currentAlpha = resolveCourseBlockAlpha(normalAlpha, showNextWeekPreview)
+    val currentAlpha = resolveCourseBlockAlpha(normalAlpha, showSpecialStatus)
     val blockColor = courseBaseColor.copy(alpha = currentAlpha)
     val textColor = style.courseTextColor ?: MaterialTheme.colorScheme.onSurface
-    val courseContentTextColor = if (showNextWeekPreview) {
+    val courseContentTextColor = if (showSpecialStatus) {
         textColor.copy(alpha = textColor.alpha * NEXT_WEEK_TEXT_ALPHA_FACTOR)
     } else {
         textColor
     }
-    val secondaryTextColor = if (showNextWeekPreview) {
+    val secondaryTextColor = if (showSpecialStatus) {
         textColor.copy(alpha = textColor.alpha * NEXT_WEEK_SECONDARY_TEXT_ALPHA_FACTOR)
     } else {
         textColor.copy(alpha = 0.8f)
@@ -270,11 +293,11 @@ fun CourseBlock(
             ""
         }
         val headerReservedHeight = nextWeekHeaderReservedHeightDp(
-            showNextWeekPreview = showNextWeekPreview,
+            showNextWeekPreview = showSpecialStatus,
             fontScale = density.fontScale
         )
         val bodyTopPadding = resolveCourseBodyTopPaddingDp(
-            showNextWeekPreview = showNextWeekPreview,
+            showNextWeekPreview = showSpecialStatus,
             textAlignCenterVertical = style.textAlignCenterVertical,
             innerPaddingDp = style.courseBlockInnerPadding.value,
             textTopPaddingDp = style.courseTextTopPadding.value,
@@ -367,20 +390,25 @@ fun CourseBlock(
             }
         }
 
-        if (showNextWeekPreview) {
+        if (showSpecialStatus) {
+            val chipColor = if (courseBlockStatus == CourseBlockStatus.HOLIDAY) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            }
             Text(
-                text = "下一周",
+                text = if (courseBlockStatus == CourseBlockStatus.HOLIDAY) "放假" else "下一周",
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = NEXT_WEEK_CHIP_TOP_MARGIN_DP.dp)
                     .widthIn(min = NEXT_WEEK_CHIP_MIN_WIDTH_DP.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = NEXT_WEEK_CHIP_BACKGROUND_ALPHA))
+                    .background(chipColor.copy(alpha = NEXT_WEEK_CHIP_BACKGROUND_ALPHA))
                     .padding(
                         horizontal = 6.dp,
                         vertical = NEXT_WEEK_CHIP_VERTICAL_PADDING_DP.dp
                     ),
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = NEXT_WEEK_CHIP_TEXT_ALPHA),
+                color = chipColor.copy(alpha = NEXT_WEEK_CHIP_TEXT_ALPHA),
                 fontSize = 8.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
