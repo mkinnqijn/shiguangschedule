@@ -19,7 +19,12 @@ class CourseBlockDetailLayoutTest {
 
         assertEquals(
             normalColor,
-            resolveCourseBlockBaseColor(normalColor, backgroundColor, false)
+            resolveCourseBlockBaseColor(
+                normalCourseColor = normalColor,
+                neutralGrayColor = androidx.compose.ui.graphics.Color.Gray,
+                scheduleBackgroundColor = backgroundColor,
+                showNextWeekPreview = false
+            )
         )
     }
 
@@ -27,34 +32,45 @@ class CourseBlockDetailLayoutTest {
     fun lightPreviewColorMixesCourseAndCurrentBackground() {
         val previewColor = resolveCourseBlockBaseColor(
             normalCourseColor = androidx.compose.ui.graphics.Color(0.8f, 0.4f, 0.2f),
+            neutralGrayColor = androidx.compose.ui.graphics.Color(0.5f, 0.5f, 0.5f),
             scheduleBackgroundColor = androidx.compose.ui.graphics.Color(1f, 1f, 1f),
             showNextWeekPreview = true
         )
 
-        assertEquals(0.88f, previewColor.red, 0.002f)
-        assertEquals(0.64f, previewColor.green, 0.002f)
-        assertEquals(0.52f, previewColor.blue, 0.002f)
+        assertEquals(0.71f, previewColor.red, 0.002f)
+        assertEquals(0.53f, previewColor.green, 0.002f)
+        assertEquals(0.44f, previewColor.blue, 0.002f)
     }
 
     @Test
     fun darkPreviewColorMixesCourseAndCurrentBackground() {
         val previewColor = resolveCourseBlockBaseColor(
             normalCourseColor = androidx.compose.ui.graphics.Color(0.2f, 0.4f, 0.8f),
+            neutralGrayColor = androidx.compose.ui.graphics.Color(0.5f, 0.5f, 0.5f),
             scheduleBackgroundColor = androidx.compose.ui.graphics.Color(0.05f, 0.05f, 0.05f),
             showNextWeekPreview = true
         )
 
-        assertEquals(0.14f, previewColor.red, 0.002f)
-        assertEquals(0.26f, previewColor.green, 0.002f)
-        assertEquals(0.5f, previewColor.blue, 0.002f)
+        assertEquals(0.2975f, previewColor.red, 0.002f)
+        assertEquals(0.3875f, previewColor.green, 0.002f)
+        assertEquals(0.5675f, previewColor.blue, 0.002f)
     }
 
     @Test
-    fun nextWeekChipOnlyReservesItsCompactMeasuredHeight() {
-        assertEquals(0f, nextWeekChipReservedHeightDp(false, false, 1f))
-        assertEquals(13f, nextWeekChipReservedHeightDp(true, false, 1f))
-        assertEquals(17.5f, nextWeekChipReservedHeightDp(true, false, 1.5f))
-        assertEquals(0f, nextWeekChipReservedHeightDp(true, true, 1f))
+    fun nextWeekChipHasStableTopSpaceIndependentFromBodyOffset() {
+        val headerHeight = nextWeekHeaderReservedHeightDp(true, 1f)
+
+        assertEquals(15f, headerHeight)
+        assertEquals(15f, resolveCourseBodyTopPaddingDp(true, false, 4f, 6f, headerHeight))
+        assertEquals(80f, resolveCourseBodyTopPaddingDp(true, false, 4f, 80f, headerHeight))
+        assertEquals(15f, resolveCourseBodyTopPaddingDp(true, true, 4f, 80f, headerHeight))
+        assertEquals(6f, resolveCourseBodyTopPaddingDp(false, false, 4f, 6f, headerHeight))
+    }
+
+    @Test
+    fun nextWeekPreviewWeakensAlphaWithoutChangingNormalCourse() {
+        assertEquals(0.82f, resolveCourseBlockAlpha(1f, true))
+        assertEquals(0.5f, resolveCourseBlockAlpha(0.5f, false))
     }
 
     @Test
