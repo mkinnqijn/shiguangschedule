@@ -21,7 +21,6 @@ class CourseBlockDetailLayoutTest {
             normalColor,
             resolveCourseBlockBaseColor(
                 normalCourseColor = normalColor,
-                neutralGrayColor = androidx.compose.ui.graphics.Color.Gray,
                 scheduleBackgroundColor = backgroundColor,
                 showNextWeekPreview = false
             )
@@ -32,28 +31,26 @@ class CourseBlockDetailLayoutTest {
     fun lightPreviewColorMixesCourseAndCurrentBackground() {
         val previewColor = resolveCourseBlockBaseColor(
             normalCourseColor = androidx.compose.ui.graphics.Color(0.8f, 0.4f, 0.2f),
-            neutralGrayColor = androidx.compose.ui.graphics.Color(0.5f, 0.5f, 0.5f),
             scheduleBackgroundColor = androidx.compose.ui.graphics.Color(1f, 1f, 1f),
             showNextWeekPreview = true
         )
 
-        assertEquals(0.71f, previewColor.red, 0.002f)
-        assertEquals(0.53f, previewColor.green, 0.002f)
-        assertEquals(0.44f, previewColor.blue, 0.002f)
+        assertEquals(0.8139f, previewColor.red, 0.002f)
+        assertEquals(0.5899f, previewColor.green, 0.002f)
+        assertEquals(0.4779f, previewColor.blue, 0.002f)
     }
 
     @Test
     fun darkPreviewColorMixesCourseAndCurrentBackground() {
         val previewColor = resolveCourseBlockBaseColor(
             normalCourseColor = androidx.compose.ui.graphics.Color(0.2f, 0.4f, 0.8f),
-            neutralGrayColor = androidx.compose.ui.graphics.Color(0.5f, 0.5f, 0.5f),
             scheduleBackgroundColor = androidx.compose.ui.graphics.Color(0.05f, 0.05f, 0.05f),
             showNextWeekPreview = true
         )
 
-        assertEquals(0.2975f, previewColor.red, 0.002f)
-        assertEquals(0.3875f, previewColor.green, 0.002f)
-        assertEquals(0.5675f, previewColor.blue, 0.002f)
+        assertEquals(0.1811f, previewColor.red, 0.002f)
+        assertEquals(0.2931f, previewColor.green, 0.002f)
+        assertEquals(0.5171f, previewColor.blue, 0.002f)
     }
 
     @Test
@@ -69,8 +66,8 @@ class CourseBlockDetailLayoutTest {
 
     @Test
     fun nextWeekPreviewWeakensAlphaWithoutChangingNormalCourse() {
-        assertEquals(0.66f, resolveCourseBlockAlpha(1f, true))
-        assertEquals(0.33f, resolveCourseBlockAlpha(0.5f, true))
+        assertEquals(0.82f, resolveCourseBlockAlpha(1f, true))
+        assertEquals(0.41f, resolveCourseBlockAlpha(0.5f, true))
         assertEquals(0.5f, resolveCourseBlockAlpha(0.5f, false))
     }
 

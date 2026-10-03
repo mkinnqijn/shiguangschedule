@@ -47,7 +47,10 @@ internal const val NEXT_WEEK_CHIP_VERTICAL_PADDING_DP = 1f
 internal const val NEXT_WEEK_CHIP_TOP_MARGIN_DP = 2f
 internal const val NEXT_WEEK_CHIP_BOTTOM_GAP_DP = 2f
 internal const val NEXT_WEEK_CHIP_MIN_WIDTH_DP = 44f
-internal const val NEXT_WEEK_PREVIEW_ALPHA_FACTOR = 0.66f
+internal const val NEXT_WEEK_PREVIEW_ALPHA_FACTOR = 0.82f
+internal const val NEXT_WEEK_COLOR_SATURATION_FACTOR = 0.8f
+internal const val NEXT_WEEK_COURSE_COLOR_WEIGHT = 0.7f
+internal const val NEXT_WEEK_BACKGROUND_COLOR_WEIGHT = 0.3f
 internal const val NEXT_WEEK_TEXT_ALPHA_FACTOR = 0.55f
 internal const val NEXT_WEEK_SECONDARY_TEXT_ALPHA_FACTOR = 0.44f
 internal const val NEXT_WEEK_CHIP_BACKGROUND_ALPHA = 0.11f
@@ -55,14 +58,21 @@ internal const val NEXT_WEEK_CHIP_TEXT_ALPHA = 0.47f
 
 internal fun resolveCourseBlockBaseColor(
     normalCourseColor: Color,
-    neutralGrayColor: Color,
     scheduleBackgroundColor: Color,
     showNextWeekPreview: Boolean
 ): Color = if (showNextWeekPreview) {
+    val luminance = normalCourseColor.red * 0.2126f +
+            normalCourseColor.green * 0.7152f +
+            normalCourseColor.blue * 0.0722f
+    val desaturationWeight = 1f - NEXT_WEEK_COLOR_SATURATION_FACTOR
+    val desaturatedRed = normalCourseColor.red * NEXT_WEEK_COLOR_SATURATION_FACTOR + luminance * desaturationWeight
+    val desaturatedGreen = normalCourseColor.green * NEXT_WEEK_COLOR_SATURATION_FACTOR + luminance * desaturationWeight
+    val desaturatedBlue = normalCourseColor.blue * NEXT_WEEK_COLOR_SATURATION_FACTOR + luminance * desaturationWeight
+
     Color(
-        red = normalCourseColor.red * 0.45f + neutralGrayColor.red * 0.4f + scheduleBackgroundColor.red * 0.15f,
-        green = normalCourseColor.green * 0.45f + neutralGrayColor.green * 0.4f + scheduleBackgroundColor.green * 0.15f,
-        blue = normalCourseColor.blue * 0.45f + neutralGrayColor.blue * 0.4f + scheduleBackgroundColor.blue * 0.15f,
+        red = desaturatedRed * NEXT_WEEK_COURSE_COLOR_WEIGHT + scheduleBackgroundColor.red * NEXT_WEEK_BACKGROUND_COLOR_WEIGHT,
+        green = desaturatedGreen * NEXT_WEEK_COURSE_COLOR_WEIGHT + scheduleBackgroundColor.green * NEXT_WEEK_BACKGROUND_COLOR_WEIGHT,
+        blue = desaturatedBlue * NEXT_WEEK_COURSE_COLOR_WEIGHT + scheduleBackgroundColor.blue * NEXT_WEEK_BACKGROUND_COLOR_WEIGHT,
         alpha = normalCourseColor.alpha,
         colorSpace = normalCourseColor.colorSpace
     )
@@ -154,10 +164,8 @@ fun CourseBlock(
     val showNextWeekPreview = isVisualDemoted && !isFloating
     val normalCourseColor = courseColorAdapted ?: fallbackColorAdapted
     val scheduleBackgroundColor = MaterialTheme.colorScheme.surface
-    val neutralGrayColor = MaterialTheme.colorScheme.outline
     val courseBaseColor = resolveCourseBlockBaseColor(
         normalCourseColor = normalCourseColor,
-        neutralGrayColor = neutralGrayColor,
         scheduleBackgroundColor = scheduleBackgroundColor,
         showNextWeekPreview = showNextWeekPreview
     )
