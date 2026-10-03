@@ -9,11 +9,22 @@ import com.xingheyuzhuan.shiguangschedule.MainActivity
 import com.xingheyuzhuan.shiguangschedule.R
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
+import com.xingheyuzhuan.shiguangschedule.widget.selectTodayCourses
+import com.xingheyuzhuan.shiguangschedule.widget.validCoursesOn
 import java.time.LocalDate
+import java.time.LocalTime
 
 object ListVerticalNativeRenderer {
 
-    fun render(context: Context, snapshot: WidgetSnapshot): RemoteViews {
+    fun render(context: Context, snapshot: WidgetSnapshot): RemoteViews =
+        renderAt(context, snapshot, LocalDate.now(), LocalTime.now())
+
+    internal fun renderAt(
+        context: Context,
+        snapshot: WidgetSnapshot,
+        today: LocalDate,
+        now: LocalTime
+    ): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.widget_list_vertical_native)
 
         resetWidgetState(rv)
@@ -27,9 +38,7 @@ object ListVerticalNativeRenderer {
         )
         rv.setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 
-        val today = LocalDate.now()
         val tomorrow = today.plusDays(1)
-        val allCourses = snapshot.courses
         val currentWeek = if (snapshot.current_week <= 0) null else snapshot.current_week
 
         if (currentWeek == null) {
@@ -41,26 +50,30 @@ object ListVerticalNativeRenderer {
             return rv
         }
 
-        val todayStr = today.toString()
-        val tomorrowStr = tomorrow.toString()
-
-        val todayCourses = allCourses.filter {
-            it.date == todayStr && !it.is_skipped
-        }.sortedBy { it.start_time }
-
-        val tomorrowCourses = allCourses.filter {
-            it.date == tomorrowStr && !it.is_skipped
-        }.sortedBy { it.start_time }
+        val todaySelection = snapshot.selectTodayCourses(today, now)
+        val tomorrowCourses = snapshot.validCoursesOn(tomorrow)
 
         val weekDaysArray = context.resources.getStringArray(R.array.week_days_names)
         val dayOfWeekStr = weekDaysArray[today.dayOfWeek.value - 1]
 
         when {
-            todayCourses.isNotEmpty() -> {
+            todaySelection.remainingTodayCourses.isNotEmpty() -> {
                 val weekText = context.getString(R.string.title_current_week, currentWeek.toString())
                 rv.setTextViewText(R.id.tv_header_title, "$weekText  $dayOfWeekStr")
-                rv.setTextViewText(R.id.tv_header_count_summary, context.getString(R.string.widget_courses_format_today, todayCourses.size))
-                renderCourseContent(context, rv, todayCourses, snapshot)
+                rv.setTextViewText(
+                    R.id.tv_header_count_summary,
+                    context.getString(
+                        R.string.widget_remaining_courses_format_today,
+                        todaySelection.remainingTodayCourses.size
+                    )
+                )
+                renderCourseContent(context, rv, todaySelection.remainingTodayCourses, snapshot)
+            }
+            todaySelection.allTodayCourses.isNotEmpty() -> {
+                val weekText = context.getString(R.string.title_current_week, currentWeek.toString())
+                rv.setTextViewText(R.id.tv_header_title, "$weekText  $dayOfWeekStr")
+                rv.setTextViewText(R.id.tv_header_count_summary, "")
+                showInnerStatus(rv, context.getString(R.string.widget_today_courses_finished))
             }
             tomorrowCourses.isNotEmpty() -> {
                 rv.setTextViewText(R.id.tv_header_title, context.getString(R.string.widget_tomorrow_course_preview))

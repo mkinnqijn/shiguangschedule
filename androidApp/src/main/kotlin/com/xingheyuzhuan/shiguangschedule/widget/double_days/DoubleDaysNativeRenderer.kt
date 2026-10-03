@@ -10,12 +10,23 @@ import com.xingheyuzhuan.shiguangschedule.R
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
 import com.xingheyuzhuan.shiguangschedule.widget.narrowDisplayName
+import com.xingheyuzhuan.shiguangschedule.widget.selectTodayCourses
+import com.xingheyuzhuan.shiguangschedule.widget.validCoursesOn
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 object DoubleDaysNativeRenderer {
 
-    fun render(context: Context, snapshot: WidgetSnapshot): RemoteViews {
+    fun render(context: Context, snapshot: WidgetSnapshot): RemoteViews =
+        renderAt(context, snapshot, LocalDate.now(), LocalTime.now())
+
+    internal fun renderAt(
+        context: Context,
+        snapshot: WidgetSnapshot,
+        today: LocalDate,
+        now: LocalTime
+    ): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.widget_double_days_native)
 
         // 状态彻底重置
@@ -46,33 +57,37 @@ object DoubleDaysNativeRenderer {
         rv.setViewVisibility(R.id.container_vacation, View.GONE)
         rv.setTextViewText(R.id.tv_current_week, context.getString(R.string.status_current_week_format, currentWeek))
 
-        val today = LocalDate.now()
         val tomorrow = today.plusDays(1)
-        val allCourses = snapshot.courses
 
         // 渲染左侧：今日
-        val todayCourses = allCourses.filter {
-            it.date == today.toString() && !it.is_skipped
-        }.sortedBy { it.start_time }
+        val todaySelection = snapshot.selectTodayCourses(today, now)
+        val todayEmptyText = if (todaySelection.allTodayCourses.isNotEmpty()) {
+            context.getString(R.string.widget_today_courses_finished)
+        } else {
+            context.getString(R.string.text_no_course)
+        }
 
         renderColumn(
             context, rv,
             R.id.container_today, R.id.tv_today_date, R.id.tv_today_footer,
             R.id.empty_today_container,
-            today, todayCourses, todayCourses.size,
-            true, snapshot
+            today, todaySelection.remainingTodayCourses,
+            isToday = true,
+            emptyText = todayEmptyText,
+            snapshot = snapshot
         )
 
         // 渲染右侧：明日
-        val tomorrowCourses = allCourses.filter { it.date == tomorrow.toString() }
-        val effectiveTomorrow = tomorrowCourses.filter { (!it.is_skipped) }.sortedBy { it.start_time }
+        val tomorrowCourses = snapshot.validCoursesOn(tomorrow)
 
         renderColumn(
             context, rv,
             R.id.container_tomorrow, R.id.tv_tomorrow_date, R.id.tv_tomorrow_footer,
             R.id.empty_tomorrow_container,
-            tomorrow, effectiveTomorrow, effectiveTomorrow.size,
-            false, snapshot
+            tomorrow, tomorrowCourses,
+            isToday = false,
+            emptyText = context.getString(R.string.text_no_course),
+            snapshot = snapshot
         )
 
         return rv
@@ -96,8 +111,8 @@ object DoubleDaysNativeRenderer {
         emptyContainerId: Int,
         date: LocalDate,
         displayCourses: List<WidgetCourseProto>,
-        totalCount: Int,
         isToday: Boolean,
+        emptyText: String,
         snapshot: WidgetSnapshot
     ) {
         // 设置日期标题
@@ -112,22 +127,27 @@ object DoubleDaysNativeRenderer {
 
         rootRv.setTextViewText(dateId, "$prefix $monthDayStr $dayOfWeekStr")
 
-        if (totalCount == 0) {
+        if (displayCourses.isEmpty()) {
             rootRv.setViewVisibility(containerId, View.GONE)
             rootRv.setViewVisibility(emptyContainerId, View.VISIBLE)
             rootRv.setViewVisibility(footerId, View.GONE)
             val emptyTextViewId = if (isToday) R.id.empty_today else R.id.empty_tomorrow
-            rootRv.setTextViewText(emptyTextViewId, context.getString(R.string.text_no_course))
+            rootRv.setTextViewText(emptyTextViewId, emptyText)
         } else {
             rootRv.setViewVisibility(containerId, View.VISIBLE)
             rootRv.setViewVisibility(emptyContainerId, View.GONE)
             rootRv.setViewVisibility(footerId, View.VISIBLE)
 
-            rootRv.setTextViewText(footerId, context.getString(R.string.widget_course_total_count, totalCount))
+            val countRes = if (isToday) {
+                R.string.widget_course_remaining_count
+            } else {
+                R.string.widget_course_total_count
+            }
+            rootRv.setTextViewText(footerId, context.getString(countRes, displayCourses.size))
 
             // 循环渲染所有课程
             displayCourses.forEachIndexed { index, course ->
-                val itemRv = RemoteViews(context.packageName, R.layout.widget_item_course_common)
+                val itemRv = RemoteViews(context.packageName, R.layout.widget_item_course_double_days)
                 itemRv.setTextViewText(R.id.tv_course_name, course.narrowDisplayName())
                 itemRv.setTextViewText(R.id.tv_course_position, course.position)
 
@@ -153,12 +173,12 @@ object DoubleDaysNativeRenderer {
                     )
                 }
 
+                // 分割线属于当前条目，并对最后一项显式隐藏，避免宿主重用 RemoteViews 时残留尾线。
+                itemRv.setViewVisibility(
+                    R.id.course_divider,
+                    if (index < displayCourses.lastIndex) View.VISIBLE else View.GONE
+                )
                 rootRv.addView(containerId, itemRv)
-
-                // 无限显示逻辑：只要不是最后一项，就添加横向分割线
-                if (index < displayCourses.size - 1) {
-                    rootRv.addView(containerId, RemoteViews(context.packageName, R.layout.widget_divider_horizontal))
-                }
             }
         }
     }

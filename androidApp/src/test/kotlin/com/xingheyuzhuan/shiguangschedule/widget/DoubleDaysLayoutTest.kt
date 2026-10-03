@@ -9,6 +9,7 @@ import android.widget.TextView
 import com.xingheyuzhuan.shiguangschedule.R
 import com.xingheyuzhuan.shiguangschedule.widget.double_days.DoubleDaysNativeRenderer
 import java.time.LocalDate
+import java.time.LocalTime
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,7 +40,7 @@ class DoubleDaysLayoutTest {
         }
         measure(root, 180)
         val column = root.findViewById<ViewGroup>(R.id.container_tomorrow)
-        val teacher = column.getChildAt(2).findViewById<TextView>(R.id.tv_course_teacher)
+        val teacher = column.getChildAt(1).findViewById<TextView>(R.id.tv_course_teacher)
         assertTrue("Original spacing should reproduce a clipped text line",
             teacher.height < teacher.layout.height)
     }
@@ -51,8 +52,8 @@ class DoubleDaysLayoutTest {
             val card = root.findViewById<View>(R.id.inner_content_card)
             for (id in listOf(R.id.container_today, R.id.container_tomorrow)) {
                 val column = root.findViewById<ViewGroup>(id)
-                assertEquals(3, column.childCount) // Two full items and their divider.
-                for (index in listOf(0, 2)) {
+                assertEquals(2, column.childCount)
+                for (index in listOf(0, 1)) {
                     val item = column.getChildAt(index)
                     val fields = listOf(
                         R.id.tv_course_name to "正式课程名称",
@@ -74,6 +75,10 @@ class DoubleDaysLayoutTest {
                     assertEquals(10f, item.findViewById<TextView>(R.id.tv_course_position).textSize)
                     assertEquals(10f, item.findViewById<TextView>(R.id.tv_course_time).textSize)
                     assertEquals(9f, item.findViewById<TextView>(R.id.tv_course_teacher).textSize)
+                    assertEquals(
+                        if (index == 0) View.VISIBLE else View.GONE,
+                        item.findViewById<View>(R.id.course_divider).visibility
+                    )
                 }
             }
         }
@@ -90,7 +95,12 @@ class DoubleDaysLayoutTest {
                 )
             }
         }
-        return DoubleDaysNativeRenderer.render(context, WidgetSnapshot(current_week = 4, courses = courses))
+        return DoubleDaysNativeRenderer.renderAt(
+            context,
+            WidgetSnapshot(current_week = 4, courses = courses),
+            LocalDate.now(),
+            LocalTime.NOON
+        )
             .apply(context, FrameLayout(context)) as ViewGroup
     }
 
