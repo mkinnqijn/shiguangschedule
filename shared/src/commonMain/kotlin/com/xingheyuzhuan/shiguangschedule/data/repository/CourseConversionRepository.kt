@@ -183,12 +183,8 @@ class CourseConversionRepository(
         if (courseEntities.isNotEmpty()) courseDao.insertAll(courseEntities)
         if (courseWeekEntities.isNotEmpty()) courseWeekDao.insertAll(courseWeekEntities)
 
-        // 导入时将当前课表的绑定作息重置为基础的（专属作息）
-        timeScheduleRepository.bindCourseTableToTimeSchedule(
-            courseTableId = tableId,
-            targetType = CourseTimeBinding.TargetType.SINGLE,
-            targetId = tableId
-        )
+        // 这里只导入课程，不改变用户已经选择的公共/组合作息绑定。
+        // 若导入器随后提供了有效的专属节次，importTimeSlots 会再切换到专属作息。
     }
 
     /**
@@ -307,12 +303,14 @@ class CourseConversionRepository(
             appSettingsRepository.insertOrUpdateCourseConfig(updatedConfig)
         }
 
-        // 导入时将当前课表的绑定作息重置为基础的（专属作息）
-        timeScheduleRepository.bindCourseTableToTimeSchedule(
-            courseTableId = tableId,
-            targetType = CourseTimeBinding.TargetType.SINGLE,
-            targetId = tableId
-        )
+        // 只有 JSON 确实带来了专属节次时才切换绑定；仅导入课程/配置时保留现有作息。
+        if (!jsonTimeSlots.isNullOrEmpty()) {
+            timeScheduleRepository.bindCourseTableToTimeSchedule(
+                courseTableId = tableId,
+                targetType = CourseTimeBinding.TargetType.SINGLE,
+                targetId = tableId
+            )
+        }
     }
 
     /**
@@ -325,6 +323,9 @@ class CourseConversionRepository(
     ) {
         validateTimeSlotsOrThrow(timeSlots)
 
+        // 部分导入脚本没有预设节次。空列表表示“没有提供”，不能清空现有作息。
+        if (timeSlots.isEmpty()) return
+
         val timeSlotEntities = timeSlots.map { jsonModel ->
             TimeSlot(
                 number = jsonModel.number,
@@ -333,10 +334,19 @@ class CourseConversionRepository(
                 timeTableId = tableId
             )
         }
-        timeSlotDao.deleteAllTimeSlotsByTimeTableId(tableId)
-        if (timeSlotEntities.isNotEmpty()) {
-            timeSlotDao.insertAll(timeSlotEntities)
-        }
+
+        val existingTimeTable = timeScheduleRepository.getTimeTableById(tableId).first()
+        val exclusiveTimeTable = existingTimeTable ?: TimeTable(
+            id = tableId,
+            name = null,
+            createdAt = Clock.System.now().toEpochMilliseconds()
+        )
+        timeScheduleRepository.saveExclusiveTimeTable(exclusiveTimeTable, timeSlotEntities)
+        timeScheduleRepository.bindCourseTableToTimeSchedule(
+            courseTableId = tableId,
+            targetType = CourseTimeBinding.TargetType.SINGLE,
+            targetId = tableId
+        )
     }
 
     /**
