@@ -40,27 +40,32 @@ class ListVerticalLayoutTest {
     fun oneAndTwoCoursesFitAtFractionalDensity() = verifyOneAndTwoCourses()
 
     @Test
-    fun oldTopPaddingReproducesClippedSecondPositionWithBlankSpaceBelow() {
+    fun oldItemSpacingReproducesClippedSecondTeacherWithBlankSpaceBelow() {
         val host = createHost()
         host.updateAppWidget(ListVerticalNativeRenderer.render(host.context, snapshot(2)))
         measure(host, 360, 176)
         val root = host.findViewById<ViewGroup>(R.id.widget_root)
         val courses = root.findViewById<ViewGroup>(R.id.container_courses)
-        val fixedPosition = courses.getChildAt(2).findViewById<TextView>(R.id.tv_course_position)
-        assertEquals(15, fixedPosition.height)
-        assertEquals(15, fixedPosition.layout.height)
-        assertEquals(22, root.height - boundsInRoot(root, fixedPosition).bottom)
+        val fixedTeacher = courses.getChildAt(2).findViewById<TextView>(R.id.tv_course_teacher)
+        assertEquals(13, fixedTeacher.height)
+        assertEquals(13, fixedTeacher.layout.height)
+        assertEquals(18, root.height - boundsInRoot(root, fixedTeacher).bottom)
         savePreview(root, "list-vertical-after")
 
         for (index in listOf(0, 2)) {
             courses.getChildAt(index).setPadding(4, 8, 4, 8)
         }
+        val divider = courses.getChildAt(1)
+        divider.layoutParams = (divider.layoutParams as ViewGroup.MarginLayoutParams).apply {
+            topMargin = 2
+            bottomMargin = 2
+        }
         measure(host, 360, 176)
-        val oldPosition = courses.getChildAt(2).findViewById<TextView>(R.id.tv_course_position)
-        assertEquals("The old item padding leaves the location line one pixel too short", 14, oldPosition.height)
-        assertEquals(15, oldPosition.layout.height)
-        assertEquals("The crop occurs while outer blank space remains visible", 20,
-            root.height - boundsInRoot(root, oldPosition).bottom)
+        val oldTeacher = courses.getChildAt(2).findViewById<TextView>(R.id.tv_course_teacher)
+        assertTrue("The old spacing must reproduce the clipped teacher line",
+            oldTeacher.height < oldTeacher.layout.height)
+        assertTrue("The crop occurs while outer blank space remains visible",
+            root.height - boundsInRoot(root, oldTeacher).bottom >= 16)
         savePreview(root, "list-vertical-before")
     }
 
@@ -81,8 +86,8 @@ class ListVerticalLayoutTest {
             for (index in 0 until count) {
                 val item = courses.getChildAt(index * 2)
                 val course = snapshot(count).courses[index]
-                assertEquals(dp(root, 6), item.paddingTop)
-                assertEquals(dp(root, 8), item.paddingBottom)
+                assertEquals(dp(root, 4), item.paddingTop)
+                assertEquals(dp(root, 4), item.paddingBottom)
                 assertEquals(course.name, item.findViewById<TextView>(R.id.tv_course_name).text.toString())
                 assertNotEquals("A wide list widget must keep the formal course name", course.widget_short_name,
                     item.findViewById<TextView>(R.id.tv_course_name).text.toString())
@@ -108,6 +113,14 @@ class ListVerticalLayoutTest {
                 assertEquals(dp(root, 13).toFloat(), item.findViewById<TextView>(R.id.tv_course_name).textSize)
                 assertEquals(dp(root, 10).toFloat(), item.findViewById<TextView>(R.id.tv_course_position).textSize)
                 assertEquals(dp(root, 9).toFloat(), item.findViewById<TextView>(R.id.tv_course_teacher).textSize)
+            }
+
+            if (count == 2) {
+                val divider = courses.getChildAt(1)
+                val margins = divider.layoutParams as ViewGroup.MarginLayoutParams
+                assertEquals(dp(root, 1), divider.height)
+                assertEquals(0, margins.topMargin)
+                assertEquals(0, margins.bottomMargin)
             }
 
             val firstName = courses.getChildAt(0).findViewById<TextView>(R.id.tv_course_name)
@@ -143,7 +156,7 @@ class ListVerticalLayoutTest {
             WidgetCourseProto(id = "1", name = "习近平新时代中国特色社会主义思想概论", widget_short_name = "习概",
                 teacher = "教师名字", position = "45教B108", start_time = "13:30", end_time = "15:05", date = date),
             WidgetCourseProto(id = "2", name = "数学分析（新工科）I", widget_short_name = "数分",
-                teacher = "", position = "46楼A308", start_time = "15:25", end_time = "17:00", date = date)
+                teacher = "教师名字", position = "46楼A308", start_time = "15:25", end_time = "17:00", date = date)
         ).take(count))
     }
 

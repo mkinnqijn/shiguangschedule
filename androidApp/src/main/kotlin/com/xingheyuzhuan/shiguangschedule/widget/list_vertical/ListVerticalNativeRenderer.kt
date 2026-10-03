@@ -122,7 +122,7 @@ object ListVerticalNativeRenderer {
             rv.addView(R.id.container_courses, itemRv)
 
             if (index < courses.size - 1) {
-                rv.addView(R.id.container_courses, RemoteViews(context.packageName, R.layout.widget_divider_horizontal))
+                rv.addView(R.id.container_courses, RemoteViews(context.packageName, R.layout.widget_divider_list_vertical))
             }
         }
     }
