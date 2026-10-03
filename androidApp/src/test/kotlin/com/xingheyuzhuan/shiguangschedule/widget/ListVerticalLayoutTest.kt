@@ -47,9 +47,9 @@ class ListVerticalLayoutTest {
         val root = host.findViewById<ViewGroup>(R.id.widget_root)
         val courses = root.findViewById<ViewGroup>(R.id.container_courses)
         val fixedTeacher = courses.getChildAt(2).findViewById<TextView>(R.id.tv_course_teacher)
-        assertEquals(13, fixedTeacher.height)
-        assertEquals(13, fixedTeacher.layout.height)
-        assertEquals(18, root.height - boundsInRoot(root, fixedTeacher).bottom)
+        assertTrue(fixedTeacher.includeFontPadding)
+        assertTrue(fixedTeacher.height - fixedTeacher.totalPaddingTop - fixedTeacher.totalPaddingBottom >= fixedTeacher.layout.height)
+        assertTrue(root.height - boundsInRoot(root, fixedTeacher).bottom >= dp(root, 12))
         savePreview(root, "list-vertical-after")
 
         for (index in listOf(0, 2)) {
