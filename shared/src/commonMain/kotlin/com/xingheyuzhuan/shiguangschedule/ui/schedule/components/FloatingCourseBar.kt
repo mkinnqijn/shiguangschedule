@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import com.xingheyuzhuan.shiguangschedule.ui.formatCourseNameForDisplay
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.xingheyuzhuan.shiguangschedule.data.db.main.CourseWithWeeks
@@ -65,7 +66,7 @@ fun FloatingCourseBar(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.widthIn(max = 180.dp)) {
                     Text(
-                        text = cw.course.name,
+                        text = formatCourseNameForDisplay(cw.course.name),
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                         maxLines = 1,

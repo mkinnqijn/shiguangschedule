@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xingheyuzhuan.shiguangschedule.Destination
+import com.xingheyuzhuan.shiguangschedule.ui.formatCourseNameForDisplay
 import com.xingheyuzhuan.shiguangschedule.data.model.ScheduleGridStyle
 import com.xingheyuzhuan.shiguangschedule.ui.theme.LocalIsDarkTheme
 import kotlinx.datetime.DayOfWeek
@@ -272,7 +273,7 @@ fun CourseTimelineItem(
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Text(
-                        text = model.course.name,
+                        text = formatCourseNameForDisplay(model.course.name),
                         style = MaterialTheme.typography.titleMedium.copy(
                             textDecoration = if (isFinished) TextDecoration.LineThrough else null
                         ),

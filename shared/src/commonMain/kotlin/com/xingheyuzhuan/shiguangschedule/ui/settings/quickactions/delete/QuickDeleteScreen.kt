@@ -57,6 +57,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.xingheyuzhuan.shiguangschedule.data.db.main.CourseWithWeeks
+import com.xingheyuzhuan.shiguangschedule.ui.formatCourseNameForDisplay
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -480,7 +481,7 @@ fun DeletePreviewCard(
         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = course.name,
+                    text = formatCourseNameForDisplay(course.name),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.error,
                     fontWeight = FontWeight.Bold

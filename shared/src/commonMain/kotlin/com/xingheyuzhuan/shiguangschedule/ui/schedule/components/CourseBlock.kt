@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.xingheyuzhuan.shiguangschedule.data.db.main.CourseWithWeeks
 import com.xingheyuzhuan.shiguangschedule.data.db.main.TimeSlot
+import com.xingheyuzhuan.shiguangschedule.ui.formatCourseNameForDisplay
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.BorderTypeProto
 import com.xingheyuzhuan.shiguangschedule.data.model.schedule_style.ScheduleModeProto
 import com.xingheyuzhuan.shiguangschedule.ui.theme.LocalIsDarkTheme
@@ -359,7 +360,7 @@ fun CourseBlock(
             }
 
             Text(
-                text = course.name,
+                text = formatCourseNameForDisplay(course.name),
                 fontSize = s13,
                 fontWeight = FontWeight.Bold,
                 color = courseContentTextColor,

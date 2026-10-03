@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.TextView
 import com.xingheyuzhuan.shiguangschedule.R
+import com.xingheyuzhuan.shiguangschedule.ui.formatCourseNameForDisplay
 import com.xingheyuzhuan.shiguangschedule.widget.compact.CompactNativeRenderer
 import com.xingheyuzhuan.shiguangschedule.widget.double_days.DoubleDaysNativeRenderer
 import com.xingheyuzhuan.shiguangschedule.widget.list_vertical.ListVerticalNativeRenderer
@@ -24,7 +25,7 @@ class WidgetShortNameRendererTest {
     fun allRenderersUseTheRightNameAndKeepCourseDetails() {
         val context = RuntimeEnvironment.getApplication()
         val course = WidgetCourseProto(
-            id = "course", name = "任意正式课程名称", widget_short_name = "自定简称",
+            id = "course", name = "数学分析（新工科）I", widget_short_name = "自定简称（原样）",
             teacher = "教师", position = "教室", start_time = "00:00", end_time = "23:59:59",
             date = LocalDate.now().toString()
         )
@@ -34,12 +35,17 @@ class WidgetShortNameRendererTest {
             DoubleDaysNativeRenderer::render to true,
             ListVerticalNativeRenderer::render to false
         )
-        for (shortName in listOf("自定简称", "", "  ")) {
+        for (shortName in listOf("自定简称（原样）", "", "  ")) {
             val snapshot = WidgetSnapshot(current_week = 4, courses = listOf(course.copy(widget_short_name = shortName)))
             for ((render, usesShortName) in renderers) {
                 val view = render(context, snapshot).apply(context, FrameLayout(context))
-                val expected = if (usesShortName && shortName.isNotBlank()) "自定简称" else course.name
+                val expected = if (usesShortName && shortName.isNotBlank()) {
+                    "自定简称（原样）"
+                } else {
+                    formatCourseNameForDisplay(course.name)
+                }
                 assertEquals(expected, view.findViewById<TextView>(R.id.tv_course_name).text.toString())
+                assertEquals("数学分析（新工科）I", course.name)
                 assertEquals(course.position, view.findViewById<TextView>(R.id.tv_course_position).text.toString())
                 // Widgets that already display a teacher must keep it.
                 view.findViewById<TextView>(R.id.tv_course_teacher)?.let {

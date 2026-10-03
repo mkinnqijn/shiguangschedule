@@ -14,11 +14,11 @@ import kotlin.test.assertNull
 class WidgetCourseDisplayNameTest {
     @Test
     fun narrowNameIsUserSuppliedAndFullNameIsPreserved() {
-        val course = WidgetCourseProto(name = "任意正式课程名称", widget_short_name = "  自定简称  ")
-        assertEquals("自定简称", course.narrowDisplayName())
-        assertEquals("任意正式课程名称", course.name)
-        assertEquals("任意正式课程名称", course.copy(widget_short_name = "").narrowDisplayName())
-        assertEquals("任意正式课程名称", course.copy(widget_short_name = " \t\n").narrowDisplayName())
+        val course = WidgetCourseProto(name = "数学分析（新工科）I", widget_short_name = "  自定简称（原样）  ")
+        assertEquals("自定简称（原样）", course.narrowDisplayName())
+        assertEquals("数学分析（新工科）I", course.name)
+        assertEquals("数学分析(新工科)I", course.copy(widget_short_name = "").narrowDisplayName())
+        assertEquals("数学分析(新工科)I", course.copy(widget_short_name = " \t\n").narrowDisplayName())
     }
 
     @Test

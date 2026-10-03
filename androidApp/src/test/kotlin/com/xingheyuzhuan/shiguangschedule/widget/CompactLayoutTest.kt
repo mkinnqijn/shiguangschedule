@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.xingheyuzhuan.shiguangschedule.R
+import com.xingheyuzhuan.shiguangschedule.ui.formatCourseNameForDisplay
 import com.xingheyuzhuan.shiguangschedule.widget.compact.CompactNativeProvider
 import com.xingheyuzhuan.shiguangschedule.widget.compact.CompactNativeRenderer
 import java.time.LocalDate
@@ -123,7 +124,7 @@ class CompactLayoutTest {
                         val item = container.getChildAt(index * 2)
                         val course = snapshot(count, shortName).courses[index]
                         val fields = listOf(
-                            R.id.tv_course_name to shortName.ifBlank { course.name },
+                            R.id.tv_course_name to shortName.ifBlank { formatCourseNameForDisplay(course.name) },
                             R.id.tv_course_position to course.position,
                             R.id.tv_course_time to "${course.start_time}-${course.end_time}",
                             R.id.tv_course_teacher to course.teacher

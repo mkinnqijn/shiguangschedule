@@ -41,6 +41,7 @@ import com.xingheyuzhuan.shiguangschedule.data.db.main.CourseWithWeeks
 import com.xingheyuzhuan.shiguangschedule.data.repository.CourseTableRepository.TweakMode
 import com.xingheyuzhuan.shiguangschedule.ui.components.CourseTablePickerDialog
 import com.xingheyuzhuan.shiguangschedule.ui.components.DatePickerModal
+import com.xingheyuzhuan.shiguangschedule.ui.formatCourseNameForDisplay
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
@@ -340,7 +341,7 @@ fun CourseDisplayCard(title: String, courses: List<CourseWithWeeks>, modifier: M
                             stringResource(sectionFormatRes, dayString, (course.startSection ?: 0).toString(), (course.endSection ?: 0).toString())
                         }
                         Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-                            Text(text = course.name, style = MaterialTheme.typography.bodyLarge)
+                            Text(text = formatCourseNameForDisplay(course.name), style = MaterialTheme.typography.bodyLarge)
                             Text(text = detailsText, style = MaterialTheme.typography.bodySmall)
                         }
                     }

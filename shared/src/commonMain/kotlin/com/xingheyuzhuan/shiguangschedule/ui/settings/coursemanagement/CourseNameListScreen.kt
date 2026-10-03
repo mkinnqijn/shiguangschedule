@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.xingheyuzhuan.shiguangschedule.Destination
 import com.xingheyuzhuan.shiguangschedule.navigation.AddEditCourseChannel
 import com.xingheyuzhuan.shiguangschedule.navigation.PresetCourseData
+import com.xingheyuzhuan.shiguangschedule.ui.formatCourseNameForDisplay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -309,7 +310,7 @@ fun CourseNameCard(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = name,
+                    text = formatCourseNameForDisplay(name),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 3,

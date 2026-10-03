@@ -33,6 +33,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.xingheyuzhuan.shiguangschedule.ui.formatCourseNameForDisplay
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -118,7 +119,7 @@ fun CourseDetailBottomSheet(
             }
             CourseDetailUIModel(
                 id = course.id,
-                name = course.name,
+                name = formatCourseNameForDisplay(course.name),
                 teacher = course.teacher,
                 position = course.position,
                 weeksDisplayStr = formatWeeks(wrapper.weeks.map { it.weekNumber }, singleLabel, doubleLabel),

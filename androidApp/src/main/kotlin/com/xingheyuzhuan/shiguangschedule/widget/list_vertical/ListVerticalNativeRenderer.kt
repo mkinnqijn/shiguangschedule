@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.RemoteViews
 import com.xingheyuzhuan.shiguangschedule.MainActivity
 import com.xingheyuzhuan.shiguangschedule.R
+import com.xingheyuzhuan.shiguangschedule.ui.formatCourseNameForDisplay
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
 import com.xingheyuzhuan.shiguangschedule.widget.selectTodayCourses
@@ -104,7 +105,7 @@ object ListVerticalNativeRenderer {
         courses.forEachIndexed { index, course ->
             val itemRv = RemoteViews(context.packageName, R.layout.widget_item_course_list_node)
 
-            itemRv.setTextViewText(R.id.tv_course_name, course.name)
+            itemRv.setTextViewText(R.id.tv_course_name, formatCourseNameForDisplay(course.name))
             itemRv.setTextViewText(R.id.tv_course_position, course.position)
             itemRv.setTextViewText(R.id.tv_course_start_time, course.start_time.take(5))
             itemRv.setTextViewText(R.id.tv_course_end_time, course.end_time.take(5))

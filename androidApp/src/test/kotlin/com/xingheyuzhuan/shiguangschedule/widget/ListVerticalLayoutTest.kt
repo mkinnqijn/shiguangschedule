@@ -11,6 +11,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.xingheyuzhuan.shiguangschedule.R
+import com.xingheyuzhuan.shiguangschedule.ui.formatCourseNameForDisplay
 import com.xingheyuzhuan.shiguangschedule.widget.list_vertical.ListVerticalNativeProvider
 import com.xingheyuzhuan.shiguangschedule.widget.list_vertical.ListVerticalNativeRenderer
 import java.io.File
@@ -88,12 +89,12 @@ class ListVerticalLayoutTest {
                 val course = snapshot(count).courses[index]
                 assertEquals(dp(root, 4), item.paddingTop)
                 assertEquals(dp(root, 4), item.paddingBottom)
-                assertEquals(course.name, item.findViewById<TextView>(R.id.tv_course_name).text.toString())
+                assertEquals(formatCourseNameForDisplay(course.name), item.findViewById<TextView>(R.id.tv_course_name).text.toString())
                 assertNotEquals("A wide list widget must keep the formal course name", course.widget_short_name,
                     item.findViewById<TextView>(R.id.tv_course_name).text.toString())
 
                 val fields = mutableListOf(
-                    R.id.tv_course_name to course.name,
+                    R.id.tv_course_name to formatCourseNameForDisplay(course.name),
                     R.id.tv_course_start_time to course.start_time,
                     R.id.tv_course_end_time to course.end_time,
                     R.id.tv_course_position to course.position

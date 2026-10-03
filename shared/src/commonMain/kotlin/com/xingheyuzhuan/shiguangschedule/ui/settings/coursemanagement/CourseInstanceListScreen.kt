@@ -36,6 +36,7 @@ import com.xingheyuzhuan.shiguangschedule.data.db.main.CourseWithWeeks
 import com.xingheyuzhuan.shiguangschedule.data.model.DualColor
 import com.xingheyuzhuan.shiguangschedule.navigation.AddEditCourseChannel
 import com.xingheyuzhuan.shiguangschedule.navigation.PresetCourseData
+import com.xingheyuzhuan.shiguangschedule.ui.formatCourseNameForDisplay
 import com.xingheyuzhuan.shiguangschedule.ui.theme.LocalIsDarkTheme
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringArrayResource
@@ -109,7 +110,7 @@ fun CourseInstanceListScreen(
                         if (isSelectionMode) {
                             stringResource(Res.string.title_selected_items_count, selectedCourseIds.size)
                         } else {
-                            courseName
+                            formatCourseNameForDisplay(courseName)
                         }
                     )
                 },
