@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -17,11 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
@@ -42,6 +41,33 @@ internal data class CourseBlockDetailLayout(
     val locationMaxLines: Int,
     val teacherVisible: Boolean
 )
+
+internal const val NEXT_WEEK_STATUS_BAR_HEIGHT_DP = 14f
+
+internal data class CourseBlockVerticalLayout(
+    val statusBarHeightDp: Float,
+    val contentTopPaddingDp: Float
+)
+
+internal fun resolveCourseBlockVerticalLayout(
+    isVisualDemoted: Boolean,
+    isFloating: Boolean,
+    textAlignCenterVertical: Boolean,
+    innerPaddingDp: Float,
+    textTopPaddingDp: Float
+): CourseBlockVerticalLayout {
+    val statusBarHeightDp = if (isVisualDemoted && !isFloating) {
+        NEXT_WEEK_STATUS_BAR_HEIGHT_DP
+    } else {
+        0f
+    }
+    val textPaddingDp = if (textAlignCenterVertical) innerPaddingDp else textTopPaddingDp
+
+    return CourseBlockVerticalLayout(
+        statusBarHeightDp = statusBarHeightDp,
+        contentTopPaddingDp = statusBarHeightDp + textPaddingDp
+    )
+}
 
 internal fun resolveCourseBlockDetailLayout(
     locationVisible: Boolean,
@@ -175,12 +201,16 @@ fun CourseBlock(
         } else {
             ""
         }
-        val topPadding = if (style.textAlignCenterVertical) {
-            style.courseBlockInnerPadding
-        } else {
-            style.courseTextTopPadding
-        }
-        val contentHeight = (maxHeight - topPadding - style.courseBlockInnerPadding).coerceAtLeast(0.dp)
+        val verticalLayout = resolveCourseBlockVerticalLayout(
+            isVisualDemoted = isVisualDemoted,
+            isFloating = isFloating,
+            textAlignCenterVertical = style.textAlignCenterVertical,
+            innerPaddingDp = style.courseBlockInnerPadding.value,
+            textTopPaddingDp = style.courseTextTopPadding.value
+        )
+        val statusBarHeight = verticalLayout.statusBarHeightDp.dp
+        val contentTopPadding = verticalLayout.contentTopPaddingDp.dp
+        val contentHeight = (maxHeight - contentTopPadding - style.courseBlockInnerPadding).coerceAtLeast(0.dp)
         val availableTextWidth = (maxWidth - style.courseBlockInnerPadding * 2).coerceAtLeast(0.dp)
         val detailTextStyle = TextStyle(fontSize = s10, lineHeight = 1.em)
         val textMeasurer = rememberTextMeasurer()
@@ -211,7 +241,7 @@ fun CourseBlock(
         Column(
             modifier = Modifier.fillMaxSize().padding(
                 start = style.courseBlockInnerPadding,
-                top = topPadding,
+                top = contentTopPadding,
                 end = style.courseBlockInnerPadding,
                 bottom = style.courseBlockInnerPadding
             ),
@@ -266,22 +296,33 @@ fun CourseBlock(
             }
         }
 
-        // 当单课不是当前周时，进行干净的全局遮罩染色与虚化斜线绘制
+        if (statusBarHeight > 0.dp) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(statusBarHeight)
+                    .align(Alignment.TopStart)
+                    .background(Color.Gray.copy(alpha = 0.45f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "下一周",
+                    color = if (isDarkTheme) Color.White else Color.Black,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = TextStyle(lineHeight = 9.sp)
+                )
+            }
+        }
+
+        // 提前一周课程保留原有全局淡化遮罩；状态条也位于遮罩下方并一起淡化
         if (isVisualDemoted && !isFloating) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(color = (if (isDarkTheme) Color.Black else Color.White).copy(alpha = 0.618f))
-                    .drawBehind {
-                        val stripeWidth = 5.dp.toPx()
-                        val stripeColor = (if (isDarkTheme) Color.White else Color.Black).copy(alpha = 0.06f)
-                        val brush = Brush.linearGradient(
-                            0.0f to stripeColor, 0.45f to stripeColor,
-                            0.55f to Color.Transparent, 1.0f to Color.Transparent,
-                            start = Offset(0f, 0f), end = Offset(stripeWidth, stripeWidth), tileMode = TileMode.Repeated
-                        )
-                        drawRect(brush = brush)
-                    }
             )
         }
     }

@@ -13,6 +13,48 @@ class CourseBlockDetailLayoutTest {
     private val detailLineHeight = 10f
 
     @Test
+    fun normalCourseKeepsOriginalContentStart() {
+        val layout = resolveCourseBlockVerticalLayout(
+            isVisualDemoted = false,
+            isFloating = false,
+            textAlignCenterVertical = false,
+            innerPaddingDp = 4f,
+            textTopPaddingDp = 6f
+        )
+
+        assertEquals(0f, layout.statusBarHeightDp)
+        assertEquals(6f, layout.contentTopPaddingDp)
+    }
+
+    @Test
+    fun nextWeekStatusBarMovesContentBelowIt() {
+        val layout = resolveCourseBlockVerticalLayout(
+            isVisualDemoted = true,
+            isFloating = false,
+            textAlignCenterVertical = false,
+            innerPaddingDp = 4f,
+            textTopPaddingDp = 6f
+        )
+
+        assertEquals(14f, layout.statusBarHeightDp)
+        assertEquals(20f, layout.contentTopPaddingDp)
+    }
+
+    @Test
+    fun nextWeekStatusBarAlsoReservesSpaceForCenteredText() {
+        val layout = resolveCourseBlockVerticalLayout(
+            isVisualDemoted = true,
+            isFloating = false,
+            textAlignCenterVertical = true,
+            innerPaddingDp = 4f,
+            textTopPaddingDp = 10f
+        )
+
+        assertEquals(14f, layout.statusBarHeightDp)
+        assertEquals(18f, layout.contentTopPaddingDp)
+    }
+
+    @Test
     fun fiveColumnsKeepSingleLineLocationAndTeacher() {
         val layout = resolveForColumnCount(5)
 
