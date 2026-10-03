@@ -13,45 +13,48 @@ class CourseBlockDetailLayoutTest {
     private val detailLineHeight = 10f
 
     @Test
-    fun normalCourseKeepsOriginalContentStart() {
-        val layout = resolveCourseBlockVerticalLayout(
-            isVisualDemoted = false,
-            isFloating = false,
-            textAlignCenterVertical = false,
-            innerPaddingDp = 4f,
-            textTopPaddingDp = 6f
-        )
+    fun normalCourseKeepsItsExactColor() {
+        val normalColor = androidx.compose.ui.graphics.Color(0.8f, 0.4f, 0.2f)
+        val backgroundColor = androidx.compose.ui.graphics.Color(1f, 1f, 1f)
 
-        assertEquals(0f, layout.statusBarHeightDp)
-        assertEquals(6f, layout.contentTopPaddingDp)
+        assertEquals(
+            normalColor,
+            resolveCourseBlockBaseColor(normalColor, backgroundColor, false)
+        )
     }
 
     @Test
-    fun nextWeekStatusBarMovesContentBelowIt() {
-        val layout = resolveCourseBlockVerticalLayout(
-            isVisualDemoted = true,
-            isFloating = false,
-            textAlignCenterVertical = false,
-            innerPaddingDp = 4f,
-            textTopPaddingDp = 6f
+    fun lightPreviewColorMixesCourseAndCurrentBackground() {
+        val previewColor = resolveCourseBlockBaseColor(
+            normalCourseColor = androidx.compose.ui.graphics.Color(0.8f, 0.4f, 0.2f),
+            scheduleBackgroundColor = androidx.compose.ui.graphics.Color(1f, 1f, 1f),
+            showNextWeekPreview = true
         )
 
-        assertEquals(14f, layout.statusBarHeightDp)
-        assertEquals(20f, layout.contentTopPaddingDp)
+        assertEquals(0.88f, previewColor.red, 0.002f)
+        assertEquals(0.64f, previewColor.green, 0.002f)
+        assertEquals(0.52f, previewColor.blue, 0.002f)
     }
 
     @Test
-    fun nextWeekStatusBarAlsoReservesSpaceForCenteredText() {
-        val layout = resolveCourseBlockVerticalLayout(
-            isVisualDemoted = true,
-            isFloating = false,
-            textAlignCenterVertical = true,
-            innerPaddingDp = 4f,
-            textTopPaddingDp = 10f
+    fun darkPreviewColorMixesCourseAndCurrentBackground() {
+        val previewColor = resolveCourseBlockBaseColor(
+            normalCourseColor = androidx.compose.ui.graphics.Color(0.2f, 0.4f, 0.8f),
+            scheduleBackgroundColor = androidx.compose.ui.graphics.Color(0.05f, 0.05f, 0.05f),
+            showNextWeekPreview = true
         )
 
-        assertEquals(14f, layout.statusBarHeightDp)
-        assertEquals(18f, layout.contentTopPaddingDp)
+        assertEquals(0.14f, previewColor.red, 0.002f)
+        assertEquals(0.26f, previewColor.green, 0.002f)
+        assertEquals(0.5f, previewColor.blue, 0.002f)
+    }
+
+    @Test
+    fun nextWeekChipOnlyReservesItsCompactMeasuredHeight() {
+        assertEquals(0f, nextWeekChipReservedHeightDp(false, false, 1f))
+        assertEquals(13f, nextWeekChipReservedHeightDp(true, false, 1f))
+        assertEquals(17.5f, nextWeekChipReservedHeightDp(true, false, 1.5f))
+        assertEquals(0f, nextWeekChipReservedHeightDp(true, true, 1f))
     }
 
     @Test

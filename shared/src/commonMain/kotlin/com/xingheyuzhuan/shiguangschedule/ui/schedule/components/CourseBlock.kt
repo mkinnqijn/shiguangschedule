@@ -6,10 +6,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,31 +43,38 @@ internal data class CourseBlockDetailLayout(
     val teacherVisible: Boolean
 )
 
-internal const val NEXT_WEEK_STATUS_BAR_HEIGHT_DP = 14f
+internal const val NEXT_WEEK_CHIP_LINE_HEIGHT_SP = 9f
+internal const val NEXT_WEEK_CHIP_VERTICAL_PADDING_DP = 1f
+internal const val NEXT_WEEK_CHIP_BOTTOM_SPACING_DP = 2f
 
-internal data class CourseBlockVerticalLayout(
-    val statusBarHeightDp: Float,
-    val contentTopPaddingDp: Float
-)
+internal fun resolveCourseBlockBaseColor(
+    normalCourseColor: Color,
+    scheduleBackgroundColor: Color,
+    showNextWeekPreview: Boolean
+): Color = if (showNextWeekPreview) {
+    Color(
+        red = normalCourseColor.red * 0.6f + scheduleBackgroundColor.red * 0.4f,
+        green = normalCourseColor.green * 0.6f + scheduleBackgroundColor.green * 0.4f,
+        blue = normalCourseColor.blue * 0.6f + scheduleBackgroundColor.blue * 0.4f,
+        alpha = normalCourseColor.alpha,
+        colorSpace = normalCourseColor.colorSpace
+    )
+} else {
+    normalCourseColor
+}
 
-internal fun resolveCourseBlockVerticalLayout(
+internal fun nextWeekChipReservedHeightDp(
     isVisualDemoted: Boolean,
     isFloating: Boolean,
-    textAlignCenterVertical: Boolean,
-    innerPaddingDp: Float,
-    textTopPaddingDp: Float
-): CourseBlockVerticalLayout {
-    val statusBarHeightDp = if (isVisualDemoted && !isFloating) {
-        NEXT_WEEK_STATUS_BAR_HEIGHT_DP
+    fontScale: Float
+): Float {
+    return if (isVisualDemoted && !isFloating) {
+        NEXT_WEEK_CHIP_LINE_HEIGHT_SP * fontScale +
+                NEXT_WEEK_CHIP_VERTICAL_PADDING_DP * 2 +
+                NEXT_WEEK_CHIP_BOTTOM_SPACING_DP
     } else {
         0f
     }
-    val textPaddingDp = if (textAlignCenterVertical) innerPaddingDp else textTopPaddingDp
-
-    return CourseBlockVerticalLayout(
-        statusBarHeightDp = statusBarHeightDp,
-        contentTopPaddingDp = statusBarHeightDp + textPaddingDp
-    )
 }
 
 internal fun resolveCourseBlockDetailLayout(
@@ -112,8 +120,16 @@ fun CourseBlock(
     }
     val fallbackColorAdapted: Color = if (isDarkTheme) style.courseColorMaps.first().dark else style.courseColorMaps.first().light
 
+    val showNextWeekPreview = isVisualDemoted && !isFloating
+    val normalCourseColor = courseColorAdapted ?: fallbackColorAdapted
+    val scheduleBackgroundColor = MaterialTheme.colorScheme.surface
+    val courseBaseColor = resolveCourseBlockBaseColor(
+        normalCourseColor = normalCourseColor,
+        scheduleBackgroundColor = scheduleBackgroundColor,
+        showNextWeekPreview = showNextWeekPreview
+    )
     val currentAlpha = if (isFloating) 0.95f else style.courseBlockAlpha
-    val blockColor = (courseColorAdapted ?: fallbackColorAdapted).copy(alpha = currentAlpha)
+    val blockColor = courseBaseColor.copy(alpha = currentAlpha)
     val textColor = style.courseTextColor ?: MaterialTheme.colorScheme.onSurface
 
     // 字体大小
@@ -201,16 +217,19 @@ fun CourseBlock(
         } else {
             ""
         }
-        val verticalLayout = resolveCourseBlockVerticalLayout(
+        val topPadding = if (style.textAlignCenterVertical) {
+            style.courseBlockInnerPadding
+        } else {
+            style.courseTextTopPadding
+        }
+        val chipReservedHeight = nextWeekChipReservedHeightDp(
             isVisualDemoted = isVisualDemoted,
             isFloating = isFloating,
-            textAlignCenterVertical = style.textAlignCenterVertical,
-            innerPaddingDp = style.courseBlockInnerPadding.value,
-            textTopPaddingDp = style.courseTextTopPadding.value
-        )
-        val statusBarHeight = verticalLayout.statusBarHeightDp.dp
-        val contentTopPadding = verticalLayout.contentTopPaddingDp.dp
-        val contentHeight = (maxHeight - contentTopPadding - style.courseBlockInnerPadding).coerceAtLeast(0.dp)
+            fontScale = density.fontScale
+        ).dp
+        val contentHeight = (
+                maxHeight - topPadding - style.courseBlockInnerPadding - chipReservedHeight
+                ).coerceAtLeast(0.dp)
         val availableTextWidth = (maxWidth - style.courseBlockInnerPadding * 2).coerceAtLeast(0.dp)
         val detailTextStyle = TextStyle(fontSize = s10, lineHeight = 1.em)
         val textMeasurer = rememberTextMeasurer()
@@ -241,13 +260,33 @@ fun CourseBlock(
         Column(
             modifier = Modifier.fillMaxSize().padding(
                 start = style.courseBlockInnerPadding,
-                top = contentTopPadding,
+                top = topPadding,
                 end = style.courseBlockInnerPadding,
                 bottom = style.courseBlockInnerPadding
             ),
             horizontalAlignment = horizontalAlignment,
             verticalArrangement = verticalArrangement
         ) {
+            if (showNextWeekPreview) {
+                Text(
+                    text = "下一周",
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
+                        .padding(
+                            horizontal = 3.dp,
+                            vertical = NEXT_WEEK_CHIP_VERTICAL_PADDING_DP.dp
+                        ),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.68f),
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = TextStyle(lineHeight = NEXT_WEEK_CHIP_LINE_HEIGHT_SP.sp)
+                )
+                Spacer(Modifier.height(NEXT_WEEK_CHIP_BOTTOM_SPACING_DP.dp))
+            }
+
             if (timeTextToShow != null) {
                 Text(
                     text = timeTextToShow,
@@ -296,34 +335,5 @@ fun CourseBlock(
             }
         }
 
-        if (statusBarHeight > 0.dp) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(statusBarHeight)
-                    .align(Alignment.TopStart)
-                    .background(Color.Gray.copy(alpha = 0.45f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "下一周",
-                    color = if (isDarkTheme) Color.White else Color.Black,
-                    fontSize = 8.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = TextStyle(lineHeight = 9.sp)
-                )
-            }
-        }
-
-        // 提前一周课程保留原有全局淡化遮罩；状态条也位于遮罩下方并一起淡化
-        if (isVisualDemoted && !isFloating) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(color = (if (isDarkTheme) Color.Black else Color.White).copy(alpha = 0.618f))
-            )
-        }
     }
 }
