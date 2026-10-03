@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +63,7 @@ internal const val NEXT_WEEK_CHIP_LINE_HEIGHT_SP = 9f
 internal const val NEXT_WEEK_CHIP_VERTICAL_PADDING_DP = 1f
 internal const val NEXT_WEEK_CHIP_TOP_MARGIN_DP = 2f
 internal const val NEXT_WEEK_CHIP_BOTTOM_GAP_DP = 2f
-internal const val NEXT_WEEK_CHIP_MIN_WIDTH_DP = 44f
+internal const val COURSE_STATUS_CHIP_WIDTH_FRACTION = 0.78f
 internal const val NEXT_WEEK_PREVIEW_ALPHA_FACTOR = 0.82f
 internal const val NEXT_WEEK_COLOR_SATURATION_FACTOR = 0.8f
 internal const val NEXT_WEEK_COURSE_COLOR_WEIGHT = 0.7f
@@ -72,6 +72,9 @@ internal const val NEXT_WEEK_TEXT_ALPHA_FACTOR = 0.55f
 internal const val NEXT_WEEK_SECONDARY_TEXT_ALPHA_FACTOR = 0.44f
 internal const val NEXT_WEEK_CHIP_BACKGROUND_ALPHA = 0.11f
 internal const val NEXT_WEEK_CHIP_TEXT_ALPHA = 0.47f
+
+internal fun resolveCourseStatusChipWidthDp(courseBlockWidthDp: Float): Float =
+    courseBlockWidthDp * COURSE_STATUS_CHIP_WIDTH_FRACTION
 
 internal fun resolveCourseBlockBaseColor(
     normalCourseColor: Color,
@@ -397,7 +400,7 @@ fun CourseBlock(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = NEXT_WEEK_CHIP_TOP_MARGIN_DP.dp)
-                    .widthIn(min = NEXT_WEEK_CHIP_MIN_WIDTH_DP.dp)
+                    .width(resolveCourseStatusChipWidthDp(maxWidth.value).dp)
                     .clip(CircleShape)
                     .background(chipColor.copy(alpha = NEXT_WEEK_CHIP_BACKGROUND_ALPHA))
                     .padding(

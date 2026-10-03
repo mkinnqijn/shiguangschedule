@@ -90,6 +90,21 @@ class CourseBlockDetailLayoutTest {
     }
 
     @Test
+    fun statusChipTracksActualCourseWidthAcrossFiveSixAndSevenColumns() {
+        val gridWidthDp = 320f
+
+        for (columnCount in 5..7) {
+            val courseBlockWidthDp = gridWidthDp / columnCount
+
+            assertEquals(
+                courseBlockWidthDp * 0.78f,
+                resolveCourseStatusChipWidthDp(courseBlockWidthDp),
+                0.001f
+            )
+        }
+    }
+
+    @Test
     fun nextWeekPreviewWeakensAlphaWithoutChangingNormalCourse() {
         assertEquals(0.82f, resolveCourseBlockAlpha(1f, true))
         assertEquals(0.41f, resolveCourseBlockAlpha(0.5f, true))
