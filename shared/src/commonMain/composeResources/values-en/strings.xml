@@ -154,6 +154,7 @@
     <string name="text_skip_dates_experimental">Experimental feature, not guaranteed to work</string>
     <string name="item_update_holiday_info">Update holiday information</string>
     <string name="update_holiday_info_hint">May be unstable (holiday info usually published at year-end)</string>
+    <string name="item_add_skipped_dates">Add skipped dates manually</string>
     <string name="item_clear_skipped_dates">Clear skipped dates</string>
     <string name="item_view_skipped_dates">View skipped dates</string>
     <string name="skipped_dates_count_format">%1$d dates</string>
@@ -162,6 +163,13 @@
     <string name="toast_update_failed">Update failed: %1$s</string>
     <string name="toast_clear_success">All skipped dates cleared!</string>
     <string name="toast_clear_failed">Clear failed: %1$s</string>
+    <string name="dialog_title_add_skipped_dates">Add skipped dates manually</string>
+    <string name="label_skip_start_date">Start date</string>
+    <string name="label_skip_end_date">End date</string>
+    <string name="error_skip_end_before_start">End date cannot be before start date</string>
+    <string name="toast_add_skipped_dates_success">Skipped dates saved</string>
+    <string name="toast_add_skipped_dates_failed">Save failed: %1$s</string>
+    <string name="toast_remove_skipped_date_failed">Delete failed: %1$s</string>
     <string name="dialog_title_auto_mode_selection">Select auto mode</string>
     <string name="auto_mode_dnd_permission_warning">(Missing DND permission, DND/Silent may not work)</string>
     <string name="dialog_title_set_remind_time">Set reminder time</string>

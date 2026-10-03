@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.xingheyuzhuan.shiguangschedule.data.api.date.ApiDateImporter
 import com.xingheyuzhuan.shiguangschedule.data.model.AutoControlMode
+import com.xingheyuzhuan.shiguangschedule.data.model.expandSkippedDateRange
+import com.xingheyuzhuan.shiguangschedule.data.model.mergeSkippedDates
 import com.xingheyuzhuan.shiguangschedule.data.repository.AppSettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -13,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.LocalDate
 import org.koin.core.annotation.KoinViewModel
 
 /**
@@ -24,6 +27,7 @@ sealed interface NotificationDialogType {
     data object AutoModeSelection : NotificationDialogType
     data object ClearConfirmation : NotificationDialogType
     data object ViewSkippedDates : NotificationDialogType
+    data object AddSkippedDates : NotificationDialogType
 }
 
 /**
@@ -44,6 +48,7 @@ data class NotificationSettingsUiState(
     val reminderEnabled: Boolean = false,
     val remindBeforeMinutes: Int = 15,
     val skippedDates: Set<String> = emptySet(),
+    val manualSkippedDates: Set<String> = emptySet(),
     val isLoading: Boolean = false,
     val exactAlarmStatus: Boolean = false,
     val dndPermissionStatus: Boolean = false,
@@ -80,6 +85,7 @@ class NotificationSettingsViewModel(
                     reminderEnabled = settings.reminderEnabled,
                     remindBeforeMinutes = settings.remindBeforeMinutes,
                     skippedDates = settings.skippedDates,
+                    manualSkippedDates = settings.manualSkippedDates,
                     autoModeEnabled = settings.autoModeEnabled,
                     autoControlMode = settings.autoControlMode,
                     compatWearableSync = settings.compatWearableSync
@@ -190,9 +196,63 @@ class NotificationSettingsViewModel(
         viewModelScope.launch {
             val result = runCatching {
                 val currentSettings = appSettingsRepository.getAppSettings().first()
-                appSettingsRepository.insertOrUpdateAppSettings(currentSettings.copy(skippedDates = emptySet()))
+                appSettingsRepository.insertOrUpdateAppSettings(
+                    currentSettings.copy(
+                        skippedDates = emptySet(),
+                        officialSkippedDates = emptySet(),
+                        manualSkippedDates = emptySet()
+                    )
+                )
             }
             if (result.isSuccess) dismissDialog()
+            onResult(result)
+        }
+    }
+
+    fun addManualSkippedDateRange(
+        startDate: LocalDate,
+        endDate: LocalDate,
+        onResult: (Result<Int>) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val result = runCatching {
+                val datesToAdd = expandSkippedDateRange(startDate, endDate)
+                val currentSettings = appSettingsRepository.getAppSettings().first()
+                val updatedManualDates = currentSettings.manualSkippedDates + datesToAdd
+                val addedCount = updatedManualDates.size - currentSettings.manualSkippedDates.size
+                appSettingsRepository.insertOrUpdateAppSettings(
+                    currentSettings.copy(
+                        skippedDates = mergeSkippedDates(
+                            currentSettings.officialSkippedDates,
+                            updatedManualDates
+                        ),
+                        manualSkippedDates = updatedManualDates
+                    )
+                )
+                addedCount
+            }
+            onResult(result)
+        }
+    }
+
+    fun removeManualSkippedDate(
+        date: String,
+        onResult: (Result<Unit>) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            val result = runCatching {
+                val currentSettings = appSettingsRepository.getAppSettings().first()
+                val updatedManualDates = currentSettings.manualSkippedDates - date
+                appSettingsRepository.insertOrUpdateAppSettings(
+                    currentSettings.copy(
+                        skippedDates = mergeSkippedDates(
+                            currentSettings.officialSkippedDates,
+                            updatedManualDates
+                        ),
+                        manualSkippedDates = updatedManualDates
+                    )
+                )
+            }
             onResult(result)
         }
     }

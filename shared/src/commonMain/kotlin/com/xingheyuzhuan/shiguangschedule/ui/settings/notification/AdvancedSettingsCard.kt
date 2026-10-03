@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import shiguangschedule.shared.generated.resources.Res
 import shiguangschedule.shared.generated.resources.item_clear_skipped_dates
+import shiguangschedule.shared.generated.resources.item_add_skipped_dates
 import shiguangschedule.shared.generated.resources.item_update_holiday_info
 import shiguangschedule.shared.generated.resources.item_view_skipped_dates
 import shiguangschedule.shared.generated.resources.section_title_advanced
@@ -34,6 +35,7 @@ import shiguangschedule.shared.generated.resources.update_holiday_info_hint
 fun AdvancedSettingsCard(
     uiState: NotificationSettingsUiState,
     onUpdateHolidays: () -> Unit,
+    onAddSkippedDates: () -> Unit,
     onClearSkippedDates: () -> Unit,
     onViewSkippedDates: () -> Unit,
     modifier: Modifier = Modifier
@@ -81,6 +83,12 @@ fun AdvancedSettingsCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     modifier = Modifier.padding(start = 16.dp)
+                )
+                HorizontalDivider()
+
+                SettingItemRow(
+                    title = stringResource(Res.string.item_add_skipped_dates),
+                    onClick = onAddSkippedDates
                 )
                 HorizontalDivider()
 

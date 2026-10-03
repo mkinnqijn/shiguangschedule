@@ -153,6 +153,7 @@
     <string name="text_skip_dates_experimental">實驗性功能，不保證一定有效</string>
     <string name="item_update_holiday_info">更新節假日資訊</string>
     <string name="update_holiday_info_hint">可能不穩定（一般情況下只有年底才公布下一年的節假日資訊）</string>
+    <string name="item_add_skipped_dates">手動新增跳過日期</string>
     <string name="item_clear_skipped_dates">清空跳過日期</string>
     <string name="item_view_skipped_dates">檢視跳過的日期</string>
     <string name="skipped_dates_count_format">%1$d 個日期</string>
@@ -161,6 +162,13 @@
     <string name="toast_update_failed">更新失敗：%1$s</string>
     <string name="toast_clear_success">已清空所有跳過日期！</string>
     <string name="toast_clear_failed">清空失敗：%1$s</string>
+    <string name="dialog_title_add_skipped_dates">手動新增跳過日期</string>
+    <string name="label_skip_start_date">開始日期</string>
+    <string name="label_skip_end_date">結束日期</string>
+    <string name="error_skip_end_before_start">結束日期不能早於開始日期</string>
+    <string name="toast_add_skipped_dates_success">跳過日期已儲存</string>
+    <string name="toast_add_skipped_dates_failed">儲存失敗：%1$s</string>
+    <string name="toast_remove_skipped_date_failed">刪除失敗：%1$s</string>
     <string name="dialog_title_auto_mode_selection">上課自動模式選擇</string>
     <string name="auto_mode_dnd_permission_warning">（缺少勿擾權限，啟用勿擾/靜音可能無效）</string>
     <string name="dialog_title_set_remind_time">設定提前提醒時間</string>

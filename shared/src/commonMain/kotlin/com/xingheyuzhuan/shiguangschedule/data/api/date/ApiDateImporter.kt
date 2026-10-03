@@ -1,6 +1,7 @@
 package com.xingheyuzhuan.shiguangschedule.data.api.date
 
 import com.xingheyuzhuan.shiguangschedule.data.repository.AppSettingsRepository
+import com.xingheyuzhuan.shiguangschedule.data.model.mergeSkippedDates
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
@@ -70,7 +71,10 @@ object ApiDateImporter {
                 .toSet()
 
             val currentSettings = appSettingsRepository.getAppSettings().first()
-            val updatedSettings = currentSettings.copy(skippedDates = skippedDates)
+            val updatedSettings = currentSettings.copy(
+                skippedDates = mergeSkippedDates(skippedDates, currentSettings.manualSkippedDates),
+                officialSkippedDates = skippedDates
+            )
             appSettingsRepository.insertOrUpdateAppSettings(updatedSettings)
 
             println("成功导入并保存了 ${skippedDates.size} 个跳过的日期。")

@@ -391,13 +391,9 @@ fun CourseBlock(
         }
 
         if (showSpecialStatus) {
-            val chipColor = if (courseBlockStatus == CourseBlockStatus.HOLIDAY) {
-                MaterialTheme.colorScheme.error
-            } else {
-                MaterialTheme.colorScheme.onSurface
-            }
+            val chipColor = MaterialTheme.colorScheme.onSurface
             Text(
-                text = if (courseBlockStatus == CourseBlockStatus.HOLIDAY) "放假" else "下一周",
+                text = if (courseBlockStatus == CourseBlockStatus.HOLIDAY) "假期" else "下一周",
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = NEXT_WEEK_CHIP_TOP_MARGIN_DP.dp)
