@@ -6,7 +6,8 @@
     android:orientation="vertical"
     android:gravity="center_vertical"
     android:minHeight="60dp"
-    android:paddingVertical="8dp"
+    android:paddingTop="6dp"
+    android:paddingBottom="8dp"
     android:paddingHorizontal="4dp">
 
     <RelativeLayout
