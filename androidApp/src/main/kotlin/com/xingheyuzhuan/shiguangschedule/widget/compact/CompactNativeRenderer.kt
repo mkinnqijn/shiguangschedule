@@ -12,6 +12,7 @@ import com.xingheyuzhuan.shiguangschedule.widget.narrowDisplayName
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlin.math.roundToInt
 
 object CompactNativeRenderer {
 
@@ -115,6 +116,12 @@ object CompactNativeRenderer {
 
         courses.forEachIndexed { index, course ->
             val itemRv = RemoteViews(context.packageName, R.layout.widget_item_course_common)
+            // Keep the text's top inset; reclaim only trailing space inside compact items.
+            // Otherwise the vertical parent can measure the second teacher line too short.
+            val density = context.resources.displayMetrics.density
+            val itemPadding = (4 * density).roundToInt()
+            itemRv.setViewPadding(R.id.course_item_root, itemPadding, itemPadding, itemPadding,
+                (2 * density).roundToInt())
             itemRv.setTextViewText(R.id.tv_course_name, course.narrowDisplayName())
             itemRv.setTextViewText(R.id.tv_course_position, course.position)
             itemRv.setTextViewText(R.id.tv_course_time, "${course.start_time.take(5)}-${course.end_time.take(5)}")
