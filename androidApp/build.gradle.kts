@@ -27,7 +27,7 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".dev"
+            applicationIdSuffix = ".widgettest"
             versionNameSuffix = "-dev"
         }
 
