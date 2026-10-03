@@ -147,7 +147,12 @@ object DoubleDaysNativeRenderer {
 
             // 循环渲染所有课程
             displayCourses.forEachIndexed { index, course ->
-                val itemRv = RemoteViews(context.packageName, R.layout.widget_item_course_double_days)
+                // 在后一项之前插入分割线，结构上保证最后一项后没有横线。
+                if (index > 0) {
+                    rootRv.addView(containerId, RemoteViews(context.packageName, R.layout.widget_divider_horizontal))
+                }
+
+                val itemRv = RemoteViews(context.packageName, R.layout.widget_item_course_common)
                 itemRv.setTextViewText(R.id.tv_course_name, course.narrowDisplayName())
                 itemRv.setTextViewText(R.id.tv_course_position, course.position)
 
@@ -173,11 +178,6 @@ object DoubleDaysNativeRenderer {
                     )
                 }
 
-                // 分割线属于当前条目，并对最后一项显式隐藏，避免宿主重用 RemoteViews 时残留尾线。
-                itemRv.setViewVisibility(
-                    R.id.course_divider,
-                    if (index < displayCourses.lastIndex) View.VISIBLE else View.GONE
-                )
                 rootRv.addView(containerId, itemRv)
             }
         }

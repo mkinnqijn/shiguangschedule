@@ -138,12 +138,11 @@ class WidgetDateStateTest {
             val root = doubleRoot(snapshot(*courses.toTypedArray()))
             val container = root.findViewById<ViewGroup>(R.id.container_today)
 
-            assertEquals(count, container.childCount)
-            for (index in 0 until count) {
-                val divider = container.getChildAt(index).findViewById<View>(R.id.course_divider)
-                val expected = if (index < count - 1) View.VISIBLE else View.GONE
-                assertEquals("divider at index $index for $count courses", expected, divider.visibility)
-            }
+            assertEquals(count * 2 - 1, container.childCount)
+            assertEquals(count, courseNames(root, R.id.container_today).size)
+            assertEquals("剩余课程$count",
+                container.getChildAt(container.childCount - 1)
+                    .findViewById<TextView>(R.id.tv_course_name).text.toString())
             assertEquals(
                 root.context.getString(R.string.widget_course_remaining_count, count),
                 root.findViewById<TextView>(R.id.tv_today_footer).text.toString()
@@ -174,9 +173,10 @@ class WidgetDateStateTest {
             )
 
             val container = host.findViewById<ViewGroup>(R.id.container_today)
-            assertEquals(count, container.childCount)
-            assertEquals(View.GONE,
-                container.getChildAt(count - 1).findViewById<View>(R.id.course_divider).visibility)
+            assertEquals(count * 2 - 1, container.childCount)
+            assertEquals("刷新课程$count",
+                container.getChildAt(container.childCount - 1)
+                    .findViewById<TextView>(R.id.tv_course_name).text.toString())
         }
     }
 
