@@ -7,7 +7,6 @@ import android.view.View
 import android.widget.RemoteViews
 import com.xingheyuzhuan.shiguangschedule.MainActivity
 import com.xingheyuzhuan.shiguangschedule.R
-import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseItemRenderer
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
 import com.xingheyuzhuan.shiguangschedule.widget.narrowDisplayName
@@ -28,7 +27,9 @@ object DoubleDaysNativeRenderer {
         today: LocalDate,
         now: LocalTime
     ): RemoteViews {
-        val rv = RemoteViews(context.packageName, R.layout.widget_double_days_native)
+        // Use a new layout resource id so existing launcher hosts inflate the fixed-slot
+        // hierarchy instead of reapplying these actions to the old dynamic container.
+        val rv = RemoteViews(context.packageName, R.layout.widget_double_days_courses_fixed)
 
         // 状态彻底重置
         resetWidgetState(rv)
@@ -162,15 +163,12 @@ object DoubleDaysNativeRenderer {
             }
             rootRv.setTextViewText(footerId, context.getString(countRes, displayCourses.size))
 
+            // validCoursesOn/selectTodayCourses already return start-time order. Keep that
+            // data selection intact and cap only the rendered list.
             val visibleCourses = displayCourses.take(slotIds.size)
             visibleCourses.forEachIndexed { index, course ->
                 val slotId = slotIds[index]
-                val itemRv = WidgetCourseItemRenderer.create(
-                    context = context,
-                    course = course,
-                    displayName = course.narrowDisplayName(),
-                    snapshot = snapshot
-                )
+                val itemRv = createCourseItem(context, course, snapshot)
                 rootRv.addView(slotId, itemRv)
                 rootRv.setViewVisibility(slotId, View.VISIBLE)
             }
@@ -178,6 +176,82 @@ object DoubleDaysNativeRenderer {
                 dividerId,
                 if (visibleCourses.size == 2) View.VISIBLE else View.GONE
             )
+        }
+    }
+
+    private fun createCourseItem(
+        context: Context,
+        course: WidgetCourseProto,
+        snapshot: WidgetSnapshot
+    ): RemoteViews {
+        val item = RemoteViews(context.packageName, R.layout.widget_item_course_double_days_fixed)
+        val position = course.position.trim()
+        val teacher = course.teacher.trim()
+        val timeRange = formatTimeRange(course)
+        val hasPosition = position.isNotEmpty()
+        val hasTeacher = teacher.isNotEmpty()
+
+        // Preserve the original 4x2 field bindings. Only visibility and row placement
+        // change when optional text is absent.
+        item.setTextViewText(R.id.tv_course_name, course.narrowDisplayName())
+        item.setTextViewText(R.id.tv_course_time, timeRange)
+        item.setTextViewText(R.id.tv_course_time_inline, timeRange)
+
+        if (hasPosition || hasTeacher) {
+            item.setViewVisibility(R.id.container_course_info_row, View.VISIBLE)
+            item.setViewVisibility(R.id.tv_course_position, View.VISIBLE)
+            item.setTextViewText(R.id.tv_course_position, if (hasPosition) position else teacher)
+            item.setViewVisibility(
+                R.id.tv_course_time,
+                if (timeRange.isNotEmpty()) View.VISIBLE else View.GONE
+            )
+            item.setViewVisibility(R.id.tv_course_time_inline, View.GONE)
+
+            val showTeacherRow = hasPosition && hasTeacher
+            item.setViewVisibility(
+                R.id.tv_course_teacher,
+                if (showTeacherRow) View.VISIBLE else View.GONE
+            )
+            if (showTeacherRow) {
+                item.setTextViewText(R.id.tv_course_teacher, teacher)
+            }
+        } else {
+            item.setViewVisibility(R.id.container_course_info_row, View.GONE)
+            item.setViewVisibility(R.id.tv_course_teacher, View.GONE)
+            item.setViewVisibility(
+                R.id.tv_course_time_inline,
+                if (timeRange.isNotEmpty()) View.VISIBLE else View.GONE
+            )
+        }
+
+        // Restore the proven RemoteViews binding: the launcher chooses layout/layout-night
+        // when it inflates the item, so populate both possible indicator ids here.
+        val style = snapshot.style
+        val colorIndex = course.color_int
+        if (style != null && colorIndex in style.course_color_maps.indices) {
+            val colorPair = style.course_color_maps[colorIndex]
+            item.setInt(
+                R.id.course_indicator,
+                "setColorFilter",
+                colorPair.light_color.toInt()
+            )
+            item.setInt(
+                R.id.course_indicator_dark,
+                "setColorFilter",
+                colorPair.dark_color.toInt()
+            )
+        }
+
+        return item
+    }
+
+    private fun formatTimeRange(course: WidgetCourseProto): String {
+        val start = course.start_time.take(5).trim()
+        val end = course.end_time.take(5).trim()
+        return when {
+            start.isNotEmpty() && end.isNotEmpty() -> "$start-$end"
+            start.isNotEmpty() -> start
+            else -> end
         }
     }
 }
