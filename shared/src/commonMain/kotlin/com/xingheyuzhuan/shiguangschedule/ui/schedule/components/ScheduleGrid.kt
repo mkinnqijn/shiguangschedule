@@ -57,21 +57,11 @@ fun ScheduleGrid(
         val weekDays = stringArrayResource(Res.array.week_days_short_names).toList()
         val visibleDays = remember(
             viewState.mergedCourses,
-            viewState.showWeekends,
-            viewState.selectedWeekNumber
+            viewState.showWeekends
         ) {
-            val courseWeeksByDay = viewState.mergedCourses
-                .groupBy { it.day }
-                .mapValues { (_, blocks) ->
-                    blocks.flatMap { block ->
-                        block.courses.flatMap { course -> course.weeks.map { it.weekNumber } }
-                    }.toSet()
-                }
-
             resolveVisibleWeekDays(
                 showWeekends = viewState.showWeekends,
-                selectedWeekNumber = viewState.selectedWeekNumber,
-                courseWeeksByDay = courseWeeksByDay
+                displayedCourseDays = viewState.mergedCourses.mapTo(mutableSetOf()) { it.day }
             )
         }
         val displayDays = visibleDays.map { day -> weekDays[day - 1] }

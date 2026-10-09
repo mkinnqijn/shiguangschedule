@@ -16,6 +16,7 @@ import com.xingheyuzhuan.shiguangschedule.widget.compact.CompactNativeProvider
 import com.xingheyuzhuan.shiguangschedule.widget.compact.CompactNativeRenderer
 import java.time.LocalDate
 import java.io.File
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import org.junit.Assert.*
 import org.junit.Test
@@ -47,7 +48,7 @@ class CompactLayoutTest {
         measure(host, 180, 168)
         val root = host.findViewById<ViewGroup>(R.id.widget_root)
         val courses = root.findViewById<ViewGroup>(R.id.container_courses)
-        val teacher = courses.getChildAt(2).findViewById<TextView>(R.id.tv_course_teacher)
+        val teacher = courseItem(courses, 1).findViewById<TextView>(R.id.tv_course_teacher)
         val bounds = Rect(0, 0, teacher.width, teacher.height)
         root.offsetDescendantRectToMyCoords(teacher, bounds)
         assertTrue("The reported symptom includes visible blank space below the clipped line",
@@ -57,44 +58,78 @@ class CompactLayoutTest {
     }
 
     @Test
-    fun oldItemPaddingReproducesClippingWhileFirstCourseAndHeaderStayPut() {
-        for (count in 1..2) {
-            val host = createHost()
-            host.updateAppWidget(CompactNativeRenderer.render(host.context, snapshot(count, "")))
-            measure(host, 180, 168)
-            val root = host.findViewById<ViewGroup>(R.id.widget_root)
-            val courses = root.findViewById<ViewGroup>(R.id.container_courses)
-            val firstCourse = courses.getChildAt(0)
-            val ids = listOf(R.id.tv_header_title, R.id.tv_course_name, R.id.tv_course_position,
-                R.id.tv_course_time, R.id.tv_course_teacher)
-            val originalBounds = ids.associateWith { boundsInRoot(root, root.findViewById(it)) }
-            if (count == 2) savePreview(root, "compact-after")
-            for (i in 0 until count) {
-                val item = courses.getChildAt(i * 2)
-                assertEquals(4, item.paddingTop)
-                assertEquals(2, item.paddingBottom)
-                item.setPadding(4, 4, 4, 4) // Restore only the pre-fix item padding.
-            }
-            measure(host, 180, 168)
-            for (id in ids) assertEquals("First course/header must not move", originalBounds[id],
-                boundsInRoot(root, root.findViewById(id)))
-            assertEquals(14, root.findViewById<View>(R.id.inner_content_card).paddingBottom)
-            assertEquals(12f, firstCourse.findViewById<TextView>(R.id.tv_course_name).textSize)
-            assertEquals(10f, firstCourse.findViewById<TextView>(R.id.tv_course_position).textSize)
-            assertEquals(10f, firstCourse.findViewById<TextView>(R.id.tv_course_time).textSize)
-            assertEquals(9f, firstCourse.findViewById<TextView>(R.id.tv_course_teacher).textSize)
-            if (count == 2) {
-                val teacher = courses.getChildAt(2).findViewById<TextView>(R.id.tv_course_teacher)
-                assertEquals(9, teacher.height)
-                assertEquals(13, teacher.layout.height)
-                assertEquals(18, root.height - boundsInRoot(root, teacher).bottom)
-                val ink = Rect()
-                teacher.paint.getTextBounds(teacher.text.toString(), 0, teacher.text.length, ink)
-                assertTrue("Old bounds clip the actual teacher glyphs, not just line spacing",
-                    teacher.baseline + ink.bottom > teacher.height)
-                savePreview(root, "compact-before")
-            }
+    fun oneCourseKeepsOneFixedHalfHeightSlot() {
+        val host = createHost()
+        host.updateAppWidget(CompactNativeRenderer.render(host.context, snapshot(1, "")))
+        measure(host, 180, 168)
+        val container = host.findViewById<ViewGroup>(R.id.container_courses)
+        val firstSlot = container.findViewById<ViewGroup>(R.id.container_compact_course_1)
+        val secondSlot = container.findViewById<ViewGroup>(R.id.container_compact_course_2)
+
+        assertTrue(abs(firstSlot.height - secondSlot.height) <= 1)
+        assertEquals(View.VISIBLE, firstSlot.visibility)
+        assertEquals(View.INVISIBLE, secondSlot.visibility)
+        assertEquals(1, firstSlot.childCount)
+        assertEquals(0, secondSlot.childCount)
+        assertEquals(View.GONE, container.findViewById<View>(R.id.divider_compact_courses).visibility)
+    }
+
+    @Test
+    fun missingFieldsSelectThreeTwoAndOneRowLayoutsWithoutChangingSlots() {
+        val date = LocalDate.now().plusDays(1).toString()
+        val cases = listOf(
+            WidgetCourseProto(id = "complete", name = "完整课程", teacher = "教师", position = "地点", start_time = "08:30", end_time = "10:05", date = date),
+            WidgetCourseProto(id = "teacher-only", name = "缺少地点", teacher = "教师", position = "", start_time = "10:25", end_time = "12:00", date = date)
+        )
+        val host = createHost()
+        host.updateAppWidget(CompactNativeRenderer.render(host.context, WidgetSnapshot(current_week = 4, courses = cases)))
+        measure(host, 180, 168)
+        val container = host.findViewById<ViewGroup>(R.id.container_courses)
+        val complete = courseItem(container, 0)
+        val partial = courseItem(container, 1)
+
+        assertTrue(abs(container.getChildAt(0).height - container.getChildAt(2).height) <= 1)
+        assertEquals(View.VISIBLE, complete.findViewById<View>(R.id.tv_course_teacher).visibility)
+        assertEquals("教师", partial.findViewById<TextView>(R.id.tv_course_position).text.toString())
+        assertEquals(View.GONE, partial.findViewById<View>(R.id.tv_course_teacher).visibility)
+        assertEquals(View.GONE, partial.findViewById<View>(R.id.tv_course_time_inline).visibility)
+
+        val nameOnly = cases.first().copy(id = "name-only", name = "只有课程名称", teacher = "", position = "")
+        host.updateAppWidget(CompactNativeRenderer.render(host.context, WidgetSnapshot(current_week = 4, courses = listOf(nameOnly))))
+        measure(host, 180, 168)
+        val nameOnlyContainer = host.findViewById<ViewGroup>(R.id.container_courses)
+        val item = courseItem(nameOnlyContainer, 0)
+        val nameRow = item.findViewById<View>(R.id.container_course_name_row)
+        assertEquals(View.GONE, item.findViewById<View>(R.id.container_course_info_row).visibility)
+        assertEquals(View.GONE, item.findViewById<View>(R.id.tv_course_teacher).visibility)
+        assertEquals(View.VISIBLE, item.findViewById<View>(R.id.tv_course_time_inline).visibility)
+        val rowCenter = (nameRow.top + nameRow.bottom) / 2
+        val textContainer = item.findViewById<ViewGroup>(R.id.container_course_text)
+        assertTrue(
+            "name row center=$rowCenter text center=${textContainer.height / 2}",
+            abs(rowCenter - textContainer.height / 2) <= 1
+        )
+    }
+
+    @Test
+    fun thirdCourseNeverEntersTheVisibleCourseArea() {
+        val date = LocalDate.now().plusDays(1).toString()
+        val courses = (1..3).map { index ->
+            WidgetCourseProto(
+                id = index.toString(), name = "课程$index", teacher = "", position = "",
+                start_time = "0$index:00", end_time = "0$index:45", date = date
+            )
         }
+        val host = createHost()
+        host.updateAppWidget(CompactNativeRenderer.render(host.context, WidgetSnapshot(current_week = 4, courses = courses)))
+        measure(host, 180, 168)
+        val root = host.findViewById<ViewGroup>(R.id.widget_root)
+        val container = root.findViewById<ViewGroup>(R.id.container_courses)
+
+        assertEquals(1, container.findViewById<ViewGroup>(R.id.container_compact_course_1).childCount)
+        assertEquals(1, container.findViewById<ViewGroup>(R.id.container_compact_course_2).childCount)
+        assertFalse(containsText(container, "课程3"))
+        assertTrue(root.findViewById<TextView>(R.id.tv_footer).text.toString().contains("3"))
     }
 
     private fun boundsInRoot(root: ViewGroup, view: View): Rect =
@@ -119,9 +154,10 @@ class CompactLayoutTest {
                     measure(host, width, height)
                     val root = host.findViewById<ViewGroup>(R.id.widget_root)
                     val container = root.findViewById<ViewGroup>(R.id.container_courses)
-                    assertEquals(count * 2 - 1, container.childCount)
+                    assertEquals(3, container.childCount)
+                    assertTrue(abs(container.getChildAt(0).height - container.getChildAt(2).height) <= 1)
                     for (index in 0 until count) {
-                        val item = container.getChildAt(index * 2)
+                        val item = courseItem(container, index)
                         val course = snapshot(count, shortName).courses[index]
                         val fields = listOf(
                             R.id.tv_course_name to shortName.ifBlank { formatCourseNameForDisplay(course.name) },
@@ -166,6 +202,22 @@ class CompactLayoutTest {
                 provider = ComponentName(context, CompactNativeProvider::class.java)
             })
         }
+    }
+
+    private fun courseItem(container: ViewGroup, index: Int): ViewGroup {
+        val slot = container.getChildAt(index * 2) as ViewGroup
+        assertEquals(1, slot.childCount)
+        return slot.getChildAt(0) as ViewGroup
+    }
+
+    private fun containsText(view: View, expected: String): Boolean {
+        if (view is TextView && view.text.toString() == expected) return true
+        if (view is ViewGroup) {
+            for (index in 0 until view.childCount) {
+                if (containsText(view.getChildAt(index), expected)) return true
+            }
+        }
+        return false
     }
 
     private fun snapshot(count: Int, shortName: String): WidgetSnapshot {

@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.RemoteViews
 import com.xingheyuzhuan.shiguangschedule.MainActivity
 import com.xingheyuzhuan.shiguangschedule.R
+import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseItemRenderer
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
 import com.xingheyuzhuan.shiguangschedule.widget.narrowDisplayName
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
@@ -98,7 +99,11 @@ object CompactNativeRenderer {
         rv.setViewVisibility(R.id.container_courses, View.GONE)
         rv.setViewVisibility(R.id.container_status, View.GONE)
         rv.setViewVisibility(R.id.tv_footer, View.GONE)
-        rv.removeAllViews(R.id.container_courses)
+        for (slotId in COURSE_SLOT_IDS) {
+            rv.removeAllViews(slotId)
+            rv.setViewVisibility(slotId, View.INVISIBLE)
+        }
+        rv.setViewVisibility(R.id.divider_compact_courses, View.GONE)
     }
 
     /**
@@ -109,44 +114,27 @@ object CompactNativeRenderer {
         rv.setViewVisibility(R.id.container_status, View.GONE)
         rv.setViewVisibility(R.id.tv_footer, View.VISIBLE)
 
-        courses.forEachIndexed { index, course ->
-            val itemRv = RemoteViews(context.packageName, R.layout.widget_item_course_common)
+        val visibleCourses = courses.take(COURSE_SLOT_IDS.size)
+        visibleCourses.forEachIndexed { index, course ->
+            val itemRv = WidgetCourseItemRenderer.create(
+                context = context,
+                course = course,
+                displayName = course.narrowDisplayName(),
+                snapshot = snapshot
+            )
             // Keep the text's top inset; reclaim only trailing space inside compact items.
-            // Otherwise the vertical parent can measure the second teacher line too short.
             val density = context.resources.displayMetrics.density
             val itemPadding = (4 * density).roundToInt()
             itemRv.setViewPadding(R.id.course_item_root, itemPadding, itemPadding, itemPadding,
                 (2 * density).roundToInt())
-            itemRv.setTextViewText(R.id.tv_course_name, course.narrowDisplayName())
-            itemRv.setTextViewText(R.id.tv_course_position, course.position)
-            itemRv.setTextViewText(R.id.tv_course_time, "${course.start_time.take(5)}-${course.end_time.take(5)}")
-
-            if (!(course.teacher.isBlank())) {
-                itemRv.setViewVisibility(R.id.tv_course_teacher, View.VISIBLE)
-                itemRv.setTextViewText(R.id.tv_course_teacher, course.teacher)
-            } else {
-                itemRv.setViewVisibility(R.id.tv_course_teacher, View.GONE)
-            }
-
-            // 颜色处理
-            val style = snapshot.style
-            val colorInt = course.color_int
-            if (style != null && colorInt < style.course_color_maps.size) {
-                val colorPair = style.course_color_maps[colorInt]
-                itemRv.setInt(R.id.course_indicator, "setColorFilter",
-                    colorPair.light_color.toInt()
-                )
-                itemRv.setInt(R.id.course_indicator_dark, "setColorFilter",
-                    colorPair.dark_color.toInt()
-                )
-            }
-
-            rv.addView(R.id.container_courses, itemRv)
-
-            if (index < courses.size - 1) {
-                rv.addView(R.id.container_courses, RemoteViews(context.packageName, R.layout.widget_divider_horizontal))
-            }
+            val slotId = COURSE_SLOT_IDS[index]
+            rv.addView(slotId, itemRv)
+            rv.setViewVisibility(slotId, View.VISIBLE)
         }
+        rv.setViewVisibility(
+            R.id.divider_compact_courses,
+            if (visibleCourses.size == 2) View.VISIBLE else View.GONE
+        )
 
         val footerRes = if (isTomorrow) R.string.widget_course_total_count else R.string.widget_course_remaining_count
         rv.setTextViewText(R.id.tv_footer, context.getString(footerRes, courses.size))
@@ -177,4 +165,9 @@ object CompactNativeRenderer {
             }
         }
     }
+
+    private val COURSE_SLOT_IDS = intArrayOf(
+        R.id.container_compact_course_1,
+        R.id.container_compact_course_2
+    )
 }

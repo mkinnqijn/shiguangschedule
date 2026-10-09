@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.RemoteViews
 import com.xingheyuzhuan.shiguangschedule.MainActivity
 import com.xingheyuzhuan.shiguangschedule.R
+import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseItemRenderer
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetCourseProto
 import com.xingheyuzhuan.shiguangschedule.widget.WidgetSnapshot
 import com.xingheyuzhuan.shiguangschedule.widget.narrowDisplayName
@@ -71,6 +72,8 @@ object DoubleDaysNativeRenderer {
             context, rv,
             R.id.container_today, R.id.tv_today_date, R.id.tv_today_footer,
             R.id.empty_today_container,
+            intArrayOf(R.id.container_today_course_1, R.id.container_today_course_2),
+            R.id.divider_today_courses,
             today, todaySelection.remainingTodayCourses,
             isToday = true,
             emptyText = todayEmptyText,
@@ -84,6 +87,8 @@ object DoubleDaysNativeRenderer {
             context, rv,
             R.id.container_tomorrow, R.id.tv_tomorrow_date, R.id.tv_tomorrow_footer,
             R.id.empty_tomorrow_container,
+            intArrayOf(R.id.container_tomorrow_course_1, R.id.container_tomorrow_course_2),
+            R.id.divider_tomorrow_courses,
             tomorrow, tomorrowCourses,
             isToday = false,
             emptyText = context.getString(R.string.text_no_course),
@@ -96,8 +101,18 @@ object DoubleDaysNativeRenderer {
     private fun resetWidgetState(rv: RemoteViews) {
         rv.setViewVisibility(R.id.inner_content_card, View.VISIBLE)
         rv.setViewVisibility(R.id.container_vacation, View.GONE)
-        rv.removeAllViews(R.id.container_today)
-        rv.removeAllViews(R.id.container_tomorrow)
+        val slots = intArrayOf(
+            R.id.container_today_course_1,
+            R.id.container_today_course_2,
+            R.id.container_tomorrow_course_1,
+            R.id.container_tomorrow_course_2
+        )
+        slots.forEach { slotId ->
+            rv.removeAllViews(slotId)
+            rv.setViewVisibility(slotId, View.INVISIBLE)
+        }
+        rv.setViewVisibility(R.id.divider_today_courses, View.GONE)
+        rv.setViewVisibility(R.id.divider_tomorrow_courses, View.GONE)
         rv.setViewVisibility(R.id.empty_today_container, View.GONE)
         rv.setViewVisibility(R.id.empty_tomorrow_container, View.GONE)
     }
@@ -109,6 +124,8 @@ object DoubleDaysNativeRenderer {
         dateId: Int,
         footerId: Int,
         emptyContainerId: Int,
+        slotIds: IntArray,
+        dividerId: Int,
         date: LocalDate,
         displayCourses: List<WidgetCourseProto>,
         isToday: Boolean,
@@ -145,41 +162,22 @@ object DoubleDaysNativeRenderer {
             }
             rootRv.setTextViewText(footerId, context.getString(countRes, displayCourses.size))
 
-            // 循环渲染所有课程
-            displayCourses.forEachIndexed { index, course ->
-                // 在后一项之前插入分割线，结构上保证最后一项后没有横线。
-                if (index > 0) {
-                    rootRv.addView(containerId, RemoteViews(context.packageName, R.layout.widget_divider_horizontal))
-                }
-
-                val itemRv = RemoteViews(context.packageName, R.layout.widget_item_course_common)
-                itemRv.setTextViewText(R.id.tv_course_name, course.narrowDisplayName())
-                itemRv.setTextViewText(R.id.tv_course_position, course.position)
-
-                val timeRange = "${course.start_time.take(5)}-${course.end_time.take(5)}"
-                itemRv.setTextViewText(R.id.tv_course_time, timeRange)
-
-                if (course.teacher.isNotBlank()) {
-                    itemRv.setViewVisibility(R.id.tv_course_teacher, View.VISIBLE)
-                    itemRv.setTextViewText(R.id.tv_course_teacher, course.teacher)
-                } else {
-                    itemRv.setViewVisibility(R.id.tv_course_teacher, View.GONE)
-                }
-
-                val style = snapshot.style
-                val colorInt = course.color_int
-                if (style != null && colorInt < style.course_color_maps.size) {
-                    val colorPair = style.course_color_maps[colorInt]
-                    itemRv.setInt(R.id.course_indicator, "setColorFilter",
-                        colorPair.light_color.toInt()
-                    )
-                    itemRv.setInt(R.id.course_indicator_dark, "setColorFilter",
-                        colorPair.dark_color.toInt()
-                    )
-                }
-
-                rootRv.addView(containerId, itemRv)
+            val visibleCourses = displayCourses.take(slotIds.size)
+            visibleCourses.forEachIndexed { index, course ->
+                val slotId = slotIds[index]
+                val itemRv = WidgetCourseItemRenderer.create(
+                    context = context,
+                    course = course,
+                    displayName = course.narrowDisplayName(),
+                    snapshot = snapshot
+                )
+                rootRv.addView(slotId, itemRv)
+                rootRv.setViewVisibility(slotId, View.VISIBLE)
             }
+            rootRv.setViewVisibility(
+                dividerId,
+                if (visibleCourses.size == 2) View.VISIBLE else View.GONE
+            )
         }
     }
 }

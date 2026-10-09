@@ -59,11 +59,34 @@
         <LinearLayout
             android:id="@+id/container_courses"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:layout_marginTop="8dp"
+            android:clipChildren="true"
+            android:clipToPadding="true"
             android:orientation="vertical">
-            <include layout="@layout/widget_item_course_common" />
-            <include layout="@layout/widget_item_course_common" />
+
+            <FrameLayout
+                android:id="@+id/container_compact_course_1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <ImageView
+                android:id="@+id/divider_compact_courses"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginHorizontal="6dp"
+                android:layout_marginVertical="2dp"
+                android:background="@color/widget_divider"
+                android:visibility="gone" />
+
+            <FrameLayout
+                android:id="@+id/container_compact_course_2"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:visibility="invisible" />
         </LinearLayout>
 
     </LinearLayout>

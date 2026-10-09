@@ -137,12 +137,15 @@ class WidgetDateStateTest {
             }
             val root = doubleRoot(snapshot(*courses.toTypedArray()))
             val container = root.findViewById<ViewGroup>(R.id.container_today)
+            val visibleCount = minOf(count, 2)
 
-            assertEquals(count * 2 - 1, container.childCount)
-            assertEquals(count, courseNames(root, R.id.container_today).size)
-            assertEquals("剩余课程$count",
-                container.getChildAt(container.childCount - 1)
-                    .findViewById<TextView>(R.id.tv_course_name).text.toString())
+            assertEquals(3, container.childCount)
+            assertEquals(visibleCount, courseNames(root, R.id.container_today).size)
+            assertEquals("剩余课程$visibleCount", courseNames(root, R.id.container_today).last())
+            assertEquals(
+                if (visibleCount == 2) View.VISIBLE else View.GONE,
+                root.findViewById<View>(R.id.divider_today_courses).visibility
+            )
             assertEquals(
                 root.context.getString(R.string.widget_course_remaining_count, count),
                 root.findViewById<TextView>(R.id.tv_today_footer).text.toString()
@@ -173,10 +176,14 @@ class WidgetDateStateTest {
             )
 
             val container = host.findViewById<ViewGroup>(R.id.container_today)
-            assertEquals(count * 2 - 1, container.childCount)
-            assertEquals("刷新课程$count",
-                container.getChildAt(container.childCount - 1)
-                    .findViewById<TextView>(R.id.tv_course_name).text.toString())
+            val visibleCount = minOf(count, 2)
+            assertEquals(3, container.childCount)
+            assertEquals(visibleCount, courseNames(host, R.id.container_today).size)
+            assertEquals("刷新课程$visibleCount", courseNames(host, R.id.container_today).last())
+            assertEquals(
+                if (visibleCount == 2) View.VISIBLE else View.GONE,
+                host.findViewById<View>(R.id.divider_today_courses).visibility
+            )
         }
     }
 
