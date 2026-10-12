@@ -267,7 +267,7 @@ fun WeeklyScheduleScreen(
                         end = scaffoldInnerPadding.calculateEndPadding(LayoutDirection.Ltr)
                     )
                     .fillMaxSize(),
-                beyondViewportPageCount = 1,
+                beyondViewportPageCount = 0,
                 userScrollEnabled = !isGridHolding
             ) { pageIndex ->
 

@@ -16,6 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
+import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.metadata
@@ -77,6 +79,8 @@ fun App() {
 
 @Composable
 fun AppNavigation(startDestination: Destination) {
+    val mainScreenViewModelStoreOwner = LocalViewModelStoreOwner.current
+        ?: error("Main screen ViewModelStoreOwner is unavailable")
     val backStack = rememberNavBackStack(
         configuration = navSavedStateConfig,
         startDestination
@@ -151,6 +155,7 @@ fun AppNavigation(startDestination: Destination) {
                         targetDest = destination,
                         onNavigate = onNavigate,
                         onBack = onBack,
+                        mainScreenViewModelStoreOwner = mainScreenViewModelStoreOwner,
                         onNavHideFractionChanged = { navHideFraction = it }
                     )
                 }
@@ -164,16 +169,26 @@ fun ScreenContent(
     targetDest: Destination,
     onNavigate: (Destination) -> Unit,
     onBack: () -> Unit,
+    mainScreenViewModelStoreOwner: ViewModelStoreOwner,
     onNavHideFractionChanged: (Float) -> Unit
 ) {
     when (targetDest) {
         Destination.CourseSchedule -> WeeklyScheduleScreen(
             onNavigate = onNavigate,
             onBack = onBack,
-            onNavHideFractionChanged = onNavHideFractionChanged
+            onNavHideFractionChanged = onNavHideFractionChanged,
+            viewModel = koinViewModel(viewModelStoreOwner = mainScreenViewModelStoreOwner)
         )
-        Destination.Settings -> SettingsScreen(onNavigate, onBack)
-        Destination.TodaySchedule -> TodayScheduleScreen(onNavigate, onBack)
+        Destination.Settings -> SettingsScreen(
+            onNavigate = onNavigate,
+            onBack = onBack,
+            viewModel = koinViewModel(viewModelStoreOwner = mainScreenViewModelStoreOwner)
+        )
+        Destination.TodaySchedule -> TodayScheduleScreen(
+            onNavigate = onNavigate,
+            onBack = onBack,
+            viewModel = koinViewModel(viewModelStoreOwner = mainScreenViewModelStoreOwner)
+        )
         Destination.ManageCourseTables -> ManageCourseTablesScreen(onBack)
         Destination.SchoolSelectionListScreen -> SchoolSelectionListScreen(onNavigate, onBack)
         Destination.CourseTableConversion -> CourseTableConversionScreen(onNavigate, onBack)
